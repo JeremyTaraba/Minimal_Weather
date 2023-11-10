@@ -1,11 +1,43 @@
 import 'package:flutter/material.dart';
 
 const TextStyle kTempStyle = TextStyle(
-  fontSize: 30,
+  fontSize: 130,
   fontWeight: FontWeight.bold,
   fontFamily: 'Alice',
 );
 
+const TextStyle kCityLocationStyle = TextStyle(
+  fontSize: 24,
+  fontFamily: 'Alice',
+);
+
+const TextStyle kDescriptionStyle = TextStyle(
+  fontSize: 30,
+  fontFamily: 'Alice',
+);
+
+LinearGradient kTempGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [
+    Colors.white,
+    Colors.white.withOpacity(0.8),
+    Colors.white.withOpacity(0.6),
+    Colors.white.withOpacity(0.4),
+    Colors.white.withOpacity(0.2),
+    Colors.white.withOpacity(0),
+  ],
+  stops: const [
+    0.0,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    1,
+  ],
+);
+
+// not using anything under here
 const TextStyle kWeatherTextStyle = TextStyle(
   fontSize: 50,
   fontWeight: FontWeight.bold,
@@ -40,16 +72,6 @@ const TextStyle kTempHighLowStyle = TextStyle(
 
 const TextStyle kLocalTimeAMPMStyle = TextStyle(
   fontSize: 12,
-  fontFamily: 'Alice',
-);
-
-const TextStyle kDescriptionStyle = TextStyle(
-  fontSize: 22,
-  fontFamily: 'Alice',
-);
-
-const TextStyle kCityLocationStyle = TextStyle(
-  fontSize: 26,
   fontFamily: 'Alice',
 );
 

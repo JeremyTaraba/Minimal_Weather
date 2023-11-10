@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:klimate/utilities/DraggableScrollable.dart';
+import 'package:klimate/utilities/appBar.dart';
 import 'package:klimate/utilities/custom_icons.dart';
 import 'package:klimate/utilities/helper_functions.dart';
 import 'package:klimate/services/weather.dart';
+import '../utilities/GradientText.dart';
 import '../utilities/constants.dart';
 import 'package:klimate/utilities/WeatherData.dart';
 
@@ -16,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   WeatherData currentWeather = WeatherData();
+  List bottomWeatherList = [];
 
   @override
   void initState() {
@@ -25,30 +29,61 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bottomWeatherList = createBottomWeatherList(context, currentWeather);
     return WillPopScope(
       onWillPop: () => Future.value(false),
-      child: Scaffold(
-        backgroundColor: Colors.grey,
-        appBar: AppBar(
-          leadingWidth: MediaQuery.of(context).size.width / 2,
-          leading: Wrap(
-            children: [
-              Icon(Icons.location_on_outlined),
-              Text(
-                currentWeather.cityName,
-                style: kCityLocationStyle,
-                overflow: TextOverflow.ellipsis,
-                textWidthBasis: TextWidthBasis.parent,
-              ),
-            ],
+      child: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("images/clear/day/1.jpg"),
+            fit: BoxFit.cover,
           ),
-          actions: [
-            Icon(Icons.settings),
-          ],
-          backgroundColor: Colors.transparent,
-          elevation: 0,
         ),
-        body: Text(currentWeather.temperature.toString()),
+        child: SafeArea(
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            backgroundColor: Colors.transparent,
+            appBar: weatherAppBar(context, currentWeather),
+            body: Stack(
+              fit: StackFit.expand,
+              children: [
+                Column(
+                  children: [
+                    Flexible(flex: 1, child: Container()),
+                    Flexible(
+                      flex: 6,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20.0),
+                            child: GradientText(
+                              "${currentWeather.temperature}°",
+                              style: kTempStyle,
+                              gradient: kTempGradient,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 20.0),
+                            child: RotatedBox(
+                              quarterTurns: 3,
+                              child: Text(
+                                currentWeather.description.toTitleCase(),
+                                style: kDescriptionStyle,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                DraggableScollableWeatherDetails(bottomWeatherList),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
