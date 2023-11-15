@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:klimate/screens/loading_screen.dart';
-import 'package:klimate/screens/location_screen.dart';
 
 void main() {
   runApp(const MyApp());

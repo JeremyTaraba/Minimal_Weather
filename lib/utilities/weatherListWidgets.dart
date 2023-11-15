@@ -9,7 +9,7 @@ class WeatherTile {
 
   WeatherTile(this.hour, this.condition, this.temp);
 
-  Column generateTile() {
+  Column _generateTile() {
     return Column(
       children: [
         Text(
@@ -35,7 +35,7 @@ List createWeatherTiles(WeatherData currentWeather) {
 
   for (int i = 0; i < 24; i++) {
     WeatherTile temp = WeatherTile(11, "sunny", 75);
-    weatherTiles.add(temp.generateTile());
+    weatherTiles.add(temp._generateTile());
   }
   return weatherTiles;
 }

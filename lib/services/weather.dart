@@ -5,9 +5,7 @@ import 'dart:math';
 
 import 'package:klimate/utilities/constants.dart';
 
-const apiKey = "ae8268b102854a15c4475780cffad3dc";
-
-const openWeatherMapURL = 'https://api.openweathermap.org/data/2.5/weather';
+import 'keys.dart';
 
 class WeatherModel {
   int condition;
@@ -72,8 +70,7 @@ class WeatherModel {
         appBarColor = kClearNightColor;
         if (condition == 801) {
           length = random.nextInt(3) + 1;
-          weatherBackground =
-              AssetImage("images/mostlyClear/night/$length.jpg");
+          weatherBackground = AssetImage("images/mostlyClear/night/$length.jpg");
         } else {
           length = random.nextInt(5) + 1;
           weatherBackground = AssetImage("images/clear/night/$length.jpg");
@@ -130,7 +127,7 @@ Future<dynamic> getLocationWeather() async {
   await currentLocation.getCurrentLocation();
 
   NetworkHelper networkHelper = NetworkHelper(
-      '$openWeatherMapURL?lat=${currentLocation.latitude}&lon=${currentLocation.longitude}&appid=$apiKey&units=imperial');
+      '$openWeatherMapURL?lat=${currentLocation.latitude}&lon=${currentLocation.longitude}&exclude=minutely&appid=$apiKey&units=imperial');
 
   var weatherData = await networkHelper.getData();
   return weatherData;

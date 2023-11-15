@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:klimate/screens/HomeScreen.dart';
-import 'location_screen.dart';
 import 'package:klimate/services/weather.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -54,11 +53,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   void getLocationData() async {
     var weatherData = await getLocationWeather();
-    // Navigator.push(context, MaterialPageRoute(builder: (context) {
-    //   return LocationScreen(
-    //     locationWeather: weatherData,
-    //   );
-    // }));
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return HomeScreen(
         locationWeather: weatherData,

@@ -20,16 +20,25 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   WeatherData currentWeather = WeatherData();
   List bottomWeatherList = [];
+  int counter = 0;
 
   @override
   void initState() {
     super.initState();
-    currentWeather.updateUI(widget.locationWeather);
+    readWeatherData().then((value) {
+      setState(() {
+        counter = value;
+      });
+      writeWeatherData(value + 1);
+    });
+
+    //currentWeather.updateUI(widget.locationWeather);
   }
 
   @override
   Widget build(BuildContext context) {
     bottomWeatherList = createBottomWeatherList(context, currentWeather);
+
     return WillPopScope(
       onWillPop: () => Future.value(false),
       child: Container(
@@ -49,7 +58,11 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Column(
                   children: [
-                    Flexible(flex: 1, child: Container()),
+                    Flexible(
+                        flex: 1,
+                        child: Container(
+                          child: Text(counter.toString()),
+                        )),
                     Flexible(
                       flex: 6,
                       child: Row(

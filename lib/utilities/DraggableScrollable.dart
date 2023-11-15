@@ -28,10 +28,20 @@ DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList
 }
 
 List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
-  List hourlyWeatherTile = createWeatherTiles(currentWeather);
+  List bottomWeatherList = [];
 
-  List bottomWeatherList = [
-    SizedBox(
+  bottomWeatherList.add(ScollableWeatherTiles(context, currentWeather));
+  bottomWeatherList.add(SevenDayForecast());
+  bottomWeatherList.add(DetailsOfTheDay());
+  return bottomWeatherList;
+}
+
+Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
+  List hourlyWeatherTile = createWeatherTiles(currentWeather);
+  return Card(
+    color: Colors.white,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+    child: SizedBox(
       height: MediaQuery.of(context).size.width / 4,
       child: ListView.builder(
         physics: ClampingScrollPhysics(),
@@ -45,7 +55,57 @@ List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
           );
         },
       ),
-    )
-  ];
-  return bottomWeatherList;
+    ),
+  );
+}
+
+Card SevenDayForecast() {
+  return Card(
+    color: Colors.white,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+    child: Column(
+      children: [
+        Text(
+          "1",
+          style: TextStyle(
+            color: Colors.black,
+          ),
+        ),
+        Text("2",
+            style: TextStyle(
+              color: Colors.black,
+            )),
+        Text("3",
+            style: TextStyle(
+              color: Colors.black,
+            ))
+      ],
+    ),
+  );
+}
+
+Card DetailsOfTheDay() {
+  return Card(
+    color: Colors.white,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+    child: Row(
+      children: [
+        Container(
+          height: 100,
+          width: 100,
+          color: Colors.red,
+        ),
+        Container(
+          height: 100,
+          width: 100,
+          color: Colors.green,
+        ),
+        Container(
+          height: 100,
+          width: 100,
+          color: Colors.blue,
+        )
+      ],
+    ),
+  );
 }
