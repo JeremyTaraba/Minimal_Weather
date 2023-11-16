@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:klimate/services/global_variables.dart';
+import 'package:klimate/services/weather.dart';
 import 'package:klimate/utilities/WeatherData.dart';
 import 'package:klimate/utilities/weatherListWidgets.dart';
 
@@ -30,14 +32,14 @@ DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList
 List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
   List bottomWeatherList = [];
 
-  bottomWeatherList.add(ScollableWeatherTiles(context, currentWeather));
+  bottomWeatherList.add(ScollableWeatherTiles(context));
   bottomWeatherList.add(SevenDayForecast());
   bottomWeatherList.add(DetailsOfTheDay());
   return bottomWeatherList;
 }
 
-Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
-  List hourlyWeatherTile = createWeatherTiles(currentWeather);
+Card ScollableWeatherTiles(BuildContext context) {
+  List hourlyWeatherTile = createWeatherTiles();
   return Card(
     color: Colors.white,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),

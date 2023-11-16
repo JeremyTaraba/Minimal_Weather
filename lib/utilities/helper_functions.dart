@@ -29,6 +29,10 @@ String getAMPM(int hour) {
   return time;
 }
 
+String getTimeWithAMPM(int hour, int minutes) {
+  return getLocalTime(hour, minutes) + " " + getAMPM(hour);
+}
+
 extension StringCasingExtension on String {
   String toCapitalized() => length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
   String toTitleCase() => replaceAll(RegExp(' +'), ' ').split(' ').map((str) => str.toCapitalized()).join(' ');
@@ -42,31 +46,7 @@ Future<String> get _localPath async {
 }
 
 // creates a reference to the file location using _localPath
-Future<File> get _localFile async {
+Future<File> get localFile async {
   final path = await _localPath;
   return File('$path/counter.txt');
-}
-
-// writes data to the file
-Future<File> writeWeatherData(int counter) async {
-  final file = await _localFile;
-
-  // Write the file
-  return file.writeAsString('$counter');
-}
-
-// reads data from the file
-Future<int> readWeatherData() async {
-  try {
-    final file = await _localFile;
-
-    // Read the file
-    final contents = await file.readAsString();
-
-    return int.parse(contents);
-  } catch (e) {
-    // If encountering an error, return 0
-    print(e);
-    return 0;
-  }
 }

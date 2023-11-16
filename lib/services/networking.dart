@@ -12,10 +12,9 @@ class NetworkHelper {
 
     if (response.statusCode == 200) {
       String data = response.body;
-      print(jsonDecode(data));
       return jsonDecode(data);
     } else {
-      print(response.statusCode);
+      print('Error getting response from url. Code: ${response.statusCode}');
     }
   }
 }

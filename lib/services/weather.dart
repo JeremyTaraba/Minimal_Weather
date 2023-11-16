@@ -115,19 +115,30 @@ class WeatherModel {
   }
 
   Future<dynamic> getCityWeather(String cityName) async {
-    var url = '$openWeatherMapURL?q=$cityName&appid=$apiKey&units=imperial';
+    var url = '$openWeatherMapURLHourly?q=$cityName&appid=$apiKey&units=imperial';
     NetworkHelper networkHelper = NetworkHelper(url);
     var weatherData = await networkHelper.getData();
     return weatherData;
   }
 }
 
-Future<dynamic> getLocationWeather() async {
+Future<dynamic> getCurrentLocationWeather() async {
+  Location currentLocation = Location();
+  await currentLocation.getCurrentLocation();
+
+  NetworkHelper networkHelper =
+      NetworkHelper('$openWeatherMapURLCurrentWeather?lat=${currentLocation.latitude}&lon=${currentLocation.longitude}&appid=$apiKey&units=imperial');
+
+  var weatherData = await networkHelper.getData();
+  return weatherData;
+}
+
+Future<dynamic> getHourlyLocationWeather() async {
   Location currentLocation = Location();
   await currentLocation.getCurrentLocation();
 
   NetworkHelper networkHelper = NetworkHelper(
-      '$openWeatherMapURL?lat=${currentLocation.latitude}&lon=${currentLocation.longitude}&exclude=minutely&appid=$apiKey&units=imperial');
+      '$openWeatherMapURLHourly?lat=${currentLocation.latitude}&lon=${currentLocation.longitude}&exclude=minutely&appid=$apiKey&units=imperial');
 
   var weatherData = await networkHelper.getData();
   return weatherData;

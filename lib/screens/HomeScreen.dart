@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:klimate/utilities/DraggableScrollable.dart';
 import 'package:klimate/utilities/appBar.dart';
-import 'package:klimate/utilities/custom_icons.dart';
 import 'package:klimate/utilities/helper_functions.dart';
-import 'package:klimate/services/weather.dart';
 import '../utilities/GradientText.dart';
 import '../utilities/constants.dart';
 import 'package:klimate/utilities/WeatherData.dart';
@@ -20,19 +18,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   WeatherData currentWeather = WeatherData();
   List bottomWeatherList = [];
-  int counter = 0;
 
   @override
   void initState() {
     super.initState();
-    readWeatherData().then((value) {
-      setState(() {
-        counter = value;
-      });
-      writeWeatherData(value + 1);
-    });
+    // currentWeather.readWeatherData().then((value) {
+    //   setState(() {
+    //     counter = value;
+    //   });
+    //   currentWeather.writeWeatherData(value + 1);
+    // });
 
-    //currentWeather.updateUI(widget.locationWeather);
+    currentWeather.updateUI(widget.locationWeather);
   }
 
   @override
@@ -58,11 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Column(
                   children: [
-                    Flexible(
-                        flex: 1,
-                        child: Container(
-                          child: Text(counter.toString()),
-                        )),
+                    Flexible(flex: 1, child: Container()),
                     Flexible(
                       flex: 6,
                       child: Row(

@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import '../services/weather.dart';
+import 'helper_functions.dart';
 
 class WeatherData {
   late WeatherModel weather;
+  late DateTime writeTime;
   int temperature = 0;
   int condition = 0;
   String cityName = "";
@@ -29,6 +33,7 @@ class WeatherData {
 
       return;
     }
+
     temperature = weatherData['main']['temp'].toInt();
     highTemp = weatherData['main']['temp_max'].toInt();
     lowTemp = weatherData['main']['temp_min'].toInt();
@@ -48,5 +53,30 @@ class WeatherData {
     sunsetMinute = sunset.minute;
     timeMinute = localTime.minute;
     weather = WeatherModel(condition: condition, hour: timeHour, sunrise: sunriseHour, sunset: sunsetHour);
+  }
+}
+
+// writes data to the file
+Future<File> writeWeatherData(var weatherJson) async {
+  final file = await localFile;
+  DateTime writeTime = DateTime.now();
+
+  // Write the file
+  return file.writeAsString('$writeTime \n $weatherJson');
+}
+
+// reads data from the file
+Future<String> readWeatherData() async {
+  try {
+    final file = await localFile;
+
+    // Read the file
+    final contents = await file.readAsString();
+
+    return contents;
+  } catch (e) {
+    // If encountering an error
+    print("Error reading local file: $e");
+    return "Error";
   }
 }
