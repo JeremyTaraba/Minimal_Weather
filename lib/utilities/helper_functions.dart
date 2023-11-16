@@ -33,6 +33,27 @@ String getTimeWithAMPM(int hour, int minutes) {
   return getLocalTime(hour, minutes) + " " + getAMPM(hour);
 }
 
+String getDayFromWeekday(int weekday) {
+  switch (weekday) {
+    case 0:
+      return "Today";
+    case 1:
+      return "Monday";
+    case 2:
+      return "Tuesday";
+    case 3:
+      return "Wednesday";
+    case 4:
+      return "Thursday";
+    case 5:
+      return "Friday";
+    case 6:
+      return "Saturday";
+    default:
+      return "Sunday";
+  }
+}
+
 extension StringCasingExtension on String {
   String toCapitalized() => length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
   String toTitleCase() => replaceAll(RegExp(' +'), ' ').split(' ').map((str) => str.toCapitalized()).join(' ');
