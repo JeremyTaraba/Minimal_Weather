@@ -55,8 +55,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   void getLocationData() async {
     // check to see if we need to make another API response or not by reading local weather file
-    String content = await readWeatherData();
-    var weatherData;
+    String content =
+        await readWeatherData(); //TODO: Remove this and make it so you can check the 1 global object which is the only thing saved in secure storage/ shared preferences
+    var weatherDataOld;
     //if there is data in the file
     if (content != "Error") {
       int i = 0;
@@ -68,18 +69,21 @@ class _LoadingScreenState extends State<LoadingScreen> {
       //DateTime writeTime = DateTime.parse(lastWrite);
       //check to see if writeTime is larger than 1 hour
       // if yes, can make new API request and write to file
-      // if no, weatherData = read from file
-      weatherData = await getCurrentLocationWeather();
+      // if no, weatherDataOld = read from file
+      weatherDataOld = await getCurrentLocationWeather();
     } else {
       // we can make a new API request and write to file
-      weatherData = await getCurrentLocationWeather();
+      weatherDataOld = await getCurrentLocationWeather();
     }
-    global_CurrentWeatherData = await getCurrentLocationWeather();
-    global_HourlyWeatherData = await getHourlyLocationWeather();
+    global_CurrentWeatherData = await getCurrentLocationWeather(); //calls the current weather api
+    global_HourlyWeatherData = await getHourlyLocationWeather(); //calls the hourly weather api
+
+    //want to store this information from both apis into 1 global weather object
+    WeatherData weatherData = WeatherData();
 
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return HomeScreen(
-        locationWeather: weatherData,
+        locationWeather: weatherDataOld,
       );
     }));
   }

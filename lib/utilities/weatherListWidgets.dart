@@ -3,6 +3,7 @@ import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/helper_functions.dart';
 
 import 'WeatherData.dart';
+import 'custom_icons.dart';
 
 class WeatherTile {
   int twentyFourHour = 0;
@@ -96,4 +97,34 @@ List createWeatherBanners() {
     weatherBanners.add(temp._generateBanner());
   }
   return weatherBanners;
+}
+
+Card createSunriseSunset() {
+  return Card(
+    color: Colors.white,
+    child: Column(
+      children: [
+        Row(
+          children: [
+            Icon(
+              CustomIcons.sunrise,
+              color: Color(0xFFEFE79F),
+              size: 25,
+            ),
+            Text(global_CurrentWeatherData["sys"]["sunrise"]),
+          ],
+        ),
+        Row(
+          children: [
+            Icon(
+              CustomIcons.sunset,
+              color: Color(0xFFFFB852),
+              size: 25,
+            ),
+            Text("8:00"),
+          ],
+        )
+      ],
+    ),
+  );
 }

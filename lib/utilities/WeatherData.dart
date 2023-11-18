@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
+import 'package:klimate/services/global_variables.dart';
+
 import '../services/weather.dart';
 import 'helper_functions.dart';
 
@@ -12,16 +15,25 @@ class WeatherData {
   String description = "";
   late DateTime time;
   int timeHour = 0;
+  int timeMinute = 0; //do we need these?
   String enteredLocation = "";
   int sunsetHour = 0;
   int sunriseHour = 1;
   int sunsetMinute = 0;
   int sunriseMinute = 0;
-  int timeMinute = 0;
   late DateTime sunrise;
   late DateTime sunset;
   int highTemp = 0;
   int lowTemp = 0;
+  late AssetImage background;
+  List weatherBanners = [];
+  List weatherTiles = [];
+
+  WeatherData() {
+    // sets all the variables we need
+    writeTime = DateTime.now();
+    temperature = global_CurrentWeatherData['main']['temp'].toInt();
+  }
 
   void updateUI(dynamic weatherData) {
     if (weatherData == null) {

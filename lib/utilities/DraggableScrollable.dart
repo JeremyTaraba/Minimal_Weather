@@ -30,11 +30,8 @@ DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList
 }
 
 List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
-  List bottomWeatherList = [];
+  List bottomWeatherList = [ScollableWeatherTiles(context), SevenDayForecast(context), DetailsOfTheDay()];
 
-  bottomWeatherList.add(ScollableWeatherTiles(context));
-  bottomWeatherList.add(SevenDayForecast(context));
-  bottomWeatherList.add(DetailsOfTheDay());
   return bottomWeatherList;
 }
 
