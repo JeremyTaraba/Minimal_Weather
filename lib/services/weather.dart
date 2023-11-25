@@ -137,8 +137,8 @@ Future<dynamic> getHourlyLocationWeather() async {
   Location currentLocation = Location();
   await currentLocation.getCurrentLocation();
 
-  NetworkHelper networkHelper = NetworkHelper(
-      '$openWeatherMapURLHourly?lat=${currentLocation.latitude}&lon=${currentLocation.longitude}&exclude=minutely&appid=$apiKey&units=imperial');
+  NetworkHelper networkHelper =
+      NetworkHelper('$openWeatherMapURLHourly?lat=${currentLocation.latitude}&lon=${currentLocation.longitude}&exclude=minutely&appid=$apiKey');
 
   var weatherData = await networkHelper.getData();
   return weatherData;

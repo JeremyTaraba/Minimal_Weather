@@ -97,23 +97,28 @@ getTemperatureUnits() async {
   return 0;
 }
 
-double fahrenheitToCelsius(int temp) {
-  double num = double.parse(((temp - 32) * 5 / 9).toStringAsFixed(1));
+double kelvinToCelsius(double temp) {
+  double num = double.parse((temp - 273.15).toStringAsFixed(1));
   return num;
 }
 
-num convertUnitsIfNeedBe(int temp) {
-  if (global_FahrenheitUnits.value == 1) {
-    return temp;
-  }
-  return fahrenheitToCelsius(temp);
+int kelvinToFahrenheit(double temp) {
+  double num = double.parse((((temp - 273.15) * 9 / 5) + 32).toStringAsFixed(0));
+  return num.toInt();
 }
 
-String mphToKmph(double mph) {
+num convertUnitsIfNeedBe(double temp) {
   if (global_FahrenheitUnits.value == 1) {
-    return "$mph mph";
+    return kelvinToFahrenheit(temp);
   }
-  return "${(mph * 1.60934).toStringAsFixed(2)} kmph";
+  return kelvinToCelsius(temp);
+}
+
+String metersSecondToMph(double mph) {
+  if (global_FahrenheitUnits.value == 1) {
+    return "${(mph * 2.23694).toStringAsFixed(2)} mph";
+  }
+  return "${(mph).toStringAsFixed(2)} m/s";
 }
 
 class convertSpeedUnits extends StatefulWidget {
@@ -131,7 +136,7 @@ class _convertSpeedUnitsState extends State<convertSpeedUnits> {
         valueListenable: global_FahrenheitUnits,
         builder: (BuildContext context, int value, Widget? child) {
           return Text(
-            mphToKmph(widget.speed),
+            metersSecondToMph(widget.speed),
             style: widget.textStyle,
           );
         });

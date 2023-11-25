@@ -8,7 +8,7 @@ import 'custom_icons.dart';
 class WeatherTile {
   int twentyFourHour = 0;
   int condition = 0;
-  int temp = 0;
+  double temp = 0;
 
   WeatherTile(this.twentyFourHour, this.condition, this.temp);
 
@@ -41,7 +41,7 @@ List createWeatherTiles() {
     int epochTime = hourly[i]["dt"];
     var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
 
-    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["id"], (hourly[i]["temp"].toInt()));
+    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["id"], (hourly[i]["temp"]));
     weatherTiles.add(temp._generateTile());
   }
   return weatherTiles;
@@ -50,8 +50,8 @@ List createWeatherTiles() {
 class WeatherBanner {
   int weekDay; //1 = Monday, 7 = Sunday
   int condition = 0;
-  int minTemp = 0;
-  int maxTemp = 0;
+  double minTemp = 0;
+  double maxTemp = 0;
 
   WeatherBanner(this.weekDay, this.condition, this.minTemp, this.maxTemp);
 
@@ -109,8 +109,8 @@ List createWeatherBanners() {
     WeatherBanner temp = WeatherBanner(
       i == 0 ? 0 : date.weekday,
       daily[i]["weather"][0]["id"].toInt(),
-      daily[i]["temp"]["min"].toInt(),
-      daily[i]["temp"]["max"].toInt(),
+      daily[i]["temp"]["min"],
+      daily[i]["temp"]["max"],
     );
     weatherBanners.add(temp._generateBanner());
   }

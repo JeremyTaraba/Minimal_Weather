@@ -10,15 +10,15 @@ import 'helper_functions.dart';
 class WeatherData {
   late WeatherModel weather;
   late DateTime writeTime;
-  int temperature = 0;
+  double temperature = 0;
   int condition = 0;
   String cityName = "";
   String description = "";
   late DateTime time;
   late DateTime sunrise;
   late DateTime sunset;
-  int highTemp = 0;
-  int lowTemp = 0;
+  double highTemp = 0;
+  double lowTemp = 0;
   late AssetImage background;
   int humidity = 0;
   double windSpeed = 0;
@@ -27,20 +27,20 @@ class WeatherData {
   WeatherData() {
     // sets all the variables we need
     writeTime = DateTime.now();
-    temperature = global_CurrentWeatherData['main']['temp'].toInt();
-    condition = global_CurrentWeatherData['weather'][0]['id'];
+    temperature = global_HourlyWeatherData['current']['temp'];
+    condition = global_HourlyWeatherData["current"]['weather'][0]['id'];
     cityName = global_CurrentWeatherData['name'];
-    description = global_CurrentWeatherData["weather"][0]["description"];
+    description = global_HourlyWeatherData["current"]["weather"][0]["description"];
 
-    int epochTime = global_CurrentWeatherData["dt"];
+    int epochTime = global_HourlyWeatherData["current"]["dt"];
     time = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
-    sunrise = DateTime.fromMillisecondsSinceEpoch(global_CurrentWeatherData['sys']['sunrise'] * 1000);
-    sunset = DateTime.fromMillisecondsSinceEpoch(global_CurrentWeatherData['sys']['sunset'] * 1000);
-    highTemp = global_CurrentWeatherData['main']['temp_max'].toInt();
-    lowTemp = global_CurrentWeatherData['main']['temp_min'].toInt();
+    sunrise = DateTime.fromMillisecondsSinceEpoch(global_HourlyWeatherData['daily'][0]['sunrise'] * 1000);
+    sunset = DateTime.fromMillisecondsSinceEpoch(global_HourlyWeatherData['daily'][0]['sunset'] * 1000);
+    highTemp = global_HourlyWeatherData['daily'][0]['temp']["max"];
+    lowTemp = global_HourlyWeatherData['daily'][0]['temp']["min"];
     background = _getBackground(condition, time.hour, sunrise.hour, sunset.hour);
-    humidity = global_CurrentWeatherData["main"]["humidity"].toInt();
-    windSpeed = double.parse(global_CurrentWeatherData["wind"]["speed"].toString());
+    humidity = global_HourlyWeatherData["current"]["humidity"].toInt();
+    windSpeed = double.parse(global_HourlyWeatherData["current"]["wind_speed"].toString());
     uvIndex = global_HourlyWeatherData["current"]["uvi"].toInt();
   }
 
