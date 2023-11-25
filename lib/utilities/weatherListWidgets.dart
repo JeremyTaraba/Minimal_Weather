@@ -24,7 +24,10 @@ class WeatherTile {
           color: Colors.orange,
           size: 50,
         ),
-        Text("${temp.toString()}°", style: TextStyle(color: Colors.black)),
+        convertTempUnits(
+          temp: temp,
+          textStyle: TextStyle(color: Colors.black),
+        ),
       ],
     );
   }
@@ -38,7 +41,7 @@ List createWeatherTiles() {
     int epochTime = hourly[i]["dt"];
     var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
 
-    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["id"], hourly[i]["temp"].toInt());
+    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["id"], (hourly[i]["temp"].toInt()));
     weatherTiles.add(temp._generateTile());
   }
   return weatherTiles;
@@ -73,7 +76,22 @@ class WeatherBanner {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text("${maxTemp}°/${minTemp}°", style: TextStyle(color: Colors.black)),
+          child: Row(
+            children: [
+              convertTempUnits(
+                temp: maxTemp,
+                textStyle: TextStyle(color: Colors.black),
+              ),
+              Text(
+                "/",
+                style: TextStyle(color: Colors.black),
+              ),
+              convertTempUnits(
+                temp: minTemp,
+                textStyle: TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
         )
       ],
     );
@@ -99,31 +117,125 @@ List createWeatherBanners() {
   return weatherBanners;
 }
 
-Card createSunriseSunset() {
+Card createSunriseSunset(WeatherData currentWeather) {
+  return Card(
+    color: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                "Sunrise",
+                style: TextStyle(color: Colors.black),
+              ),
+              Icon(
+                CustomIcons.sunrise,
+                color: Colors.orangeAccent,
+                size: 40,
+              ),
+              Text("${getLocalTime(currentWeather.sunrise.hour, currentWeather.sunrise.minute)} ${getAMPM(currentWeather.sunrise.hour)}",
+                  style: TextStyle(color: Colors.black)),
+            ],
+          ),
+          Row(
+            children: [
+              Text(
+                "Sunset",
+                style: TextStyle(color: Colors.black),
+              ),
+              Icon(
+                CustomIcons.sunset,
+                color: Colors.blue,
+                size: 40,
+              ),
+              Text(
+                "${getLocalTime(currentWeather.sunset.hour, currentWeather.sunset.minute)} ${getAMPM(currentWeather.sunset.hour)}",
+                style: TextStyle(color: Colors.black),
+              )
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Card createHumidity(WeatherData currentWeather) {
   return Card(
     color: Colors.white,
     child: Column(
       children: [
-        Row(
-          children: [
-            Icon(
-              CustomIcons.sunrise,
-              color: Color(0xFFEFE79F),
-              size: 25,
-            ),
-            Text(global_CurrentWeatherData["sys"]["sunrise"]),
-          ],
+        Text(
+          "Humidity",
+          style: TextStyle(color: Colors.black),
         ),
-        Row(
-          children: [
-            Icon(
-              CustomIcons.sunset,
-              color: Color(0xFFFFB852),
-              size: 25,
-            ),
-            Text("8:00"),
-          ],
-        )
+        Icon(
+          Icons.water_drop,
+          color: Colors.blue,
+          size: 40,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            "${currentWeather.humidity}%",
+            style: TextStyle(color: Colors.black),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Card createWind(WeatherData currentWeather) {
+  return Card(
+    color: Colors.white,
+    child: Column(
+      children: [
+        Text(
+          "Wind",
+          style: TextStyle(color: Colors.black),
+        ),
+        Icon(
+          Icons.air,
+          color: Colors.lightBlueAccent,
+          size: 40,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: convertSpeedUnits(
+            speed: currentWeather.windSpeed,
+            textStyle: TextStyle(color: Colors.black),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Card createUVIndex(WeatherData currentWeather) {
+  return Card(
+    color: Colors.white,
+    child: Column(
+      children: [
+        Text(
+          "UV Index",
+          style: TextStyle(color: Colors.black),
+        ),
+        Icon(
+          Icons.brightness_7_outlined,
+          color: Colors.purpleAccent,
+          size: 40,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            "${currentWeather.uvIndex}",
+            style: TextStyle(color: Colors.black),
+          ),
+        ),
       ],
     ),
   );

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:klimate/services/global_variables.dart';
@@ -14,81 +15,141 @@ class WeatherData {
   String cityName = "";
   String description = "";
   late DateTime time;
-  int timeHour = 0;
-  int timeMinute = 0; //do we need these?
-  String enteredLocation = "";
-  int sunsetHour = 0;
-  int sunriseHour = 1;
-  int sunsetMinute = 0;
-  int sunriseMinute = 0;
   late DateTime sunrise;
   late DateTime sunset;
   int highTemp = 0;
   int lowTemp = 0;
   late AssetImage background;
-  List weatherBanners = [];
-  List weatherTiles = [];
+  int humidity = 0;
+  double windSpeed = 0;
+  int uvIndex = 0;
 
   WeatherData() {
     // sets all the variables we need
     writeTime = DateTime.now();
     temperature = global_CurrentWeatherData['main']['temp'].toInt();
+    condition = global_CurrentWeatherData['weather'][0]['id'];
+    cityName = global_CurrentWeatherData['name'];
+    description = global_CurrentWeatherData["weather"][0]["description"];
+
+    int epochTime = global_CurrentWeatherData["dt"];
+    time = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
+    sunrise = DateTime.fromMillisecondsSinceEpoch(global_CurrentWeatherData['sys']['sunrise'] * 1000);
+    sunset = DateTime.fromMillisecondsSinceEpoch(global_CurrentWeatherData['sys']['sunset'] * 1000);
+    highTemp = global_CurrentWeatherData['main']['temp_max'].toInt();
+    lowTemp = global_CurrentWeatherData['main']['temp_min'].toInt();
+    background = _getBackground(condition, time.hour, sunrise.hour, sunset.hour);
+    humidity = global_CurrentWeatherData["main"]["humidity"].toInt();
+    windSpeed = double.parse(global_CurrentWeatherData["wind"]["speed"].toString());
+    uvIndex = global_HourlyWeatherData["current"]["uvi"].toInt();
   }
 
-  void updateUI(dynamic weatherData) {
-    if (weatherData == null) {
-      temperature = 0;
-      cityName = "";
-      description = "Oops! Could not locate weather for '$enteredLocation'";
-      time = DateTime.now();
-      weather = WeatherModel(condition: 1000, hour: 0, sunset: 0, sunrise: 1);
+  AssetImage _getBackground(int condition, int hour, int sunrise, int sunset) {
+    int length = 1;
+    Random random = Random();
+    bool day = false;
 
-      return;
+    //if daytime
+    if ((hour > sunrise) && (hour <= sunset)) {
+      day = true;
     }
+    if (condition < 300) {
+      // thunderstorm
 
-    temperature = weatherData['main']['temp'].toInt();
-    highTemp = weatherData['main']['temp_max'].toInt();
-    lowTemp = weatherData['main']['temp_min'].toInt();
-    condition = weatherData['weather'][0]['id'];
-    cityName = weatherData['name'];
-    description = weatherData["weather"][0]["description"];
-    int timezone = weatherData['timezone'];
-    DateTime localTime = DateTime.now().add(Duration(seconds: timezone - DateTime.now().timeZoneOffset.inSeconds));
-    timeHour = localTime.hour;
-    var timeSunrise = DateTime.fromMillisecondsSinceEpoch(weatherData['sys']['sunrise'] * 1000);
-    var timeSunset = DateTime.fromMillisecondsSinceEpoch(weatherData['sys']['sunset'] * 1000);
-    sunrise = timeSunrise.add(Duration(seconds: timezone - timeSunrise.timeZoneOffset.inSeconds));
-    sunriseHour = sunrise.hour;
-    sunriseMinute = sunrise.minute;
-    sunset = timeSunset.add(Duration(seconds: timezone - timeSunrise.timeZoneOffset.inSeconds));
-    sunsetHour = sunset.hour;
-    sunsetMinute = sunset.minute;
-    timeMinute = localTime.minute;
-    weather = WeatherModel(condition: condition, hour: timeHour, sunrise: sunriseHour, sunset: sunsetHour);
+      return AssetImage("images/thunderstorm/1.jpg");
+    } else if (condition < 400) {
+      // drizzle
+
+      length = random.nextInt(6) + 1;
+      return AssetImage("images/rain/$length.jpg");
+    } else if (condition < 600) {
+      // rain
+
+      length = random.nextInt(6) + 1;
+      return AssetImage("images/rain/$length.jpg");
+    } else if (condition < 700) {
+      //snow
+      if (condition == 611 || condition == 612 || condition == 613) {
+        // sleet/hail
+
+        length = random.nextInt(2) + 1;
+        return AssetImage("images/hail/$length.jpg");
+      } else {
+        length = random.nextInt(4) + 1;
+        return AssetImage("images/snow/$length.jpg");
+      }
+    } else if (condition < 800) {
+      // atmosphere (fog, mist, smoke, haze)
+
+      return AssetImage("images/atmosphere/1.jpg");
+    } else if (condition == 800 || condition == 801) {
+      // clear and mostly clear
+      if (day) {
+        length = random.nextInt(10) + 1;
+        return AssetImage("images/clear/day/$length.jpg");
+      } else {
+        if (condition == 801) {
+          length = random.nextInt(3) + 1;
+          return AssetImage("images/mostlyClear/night/$length.jpg");
+        } else {
+          length = random.nextInt(5) + 1;
+          return AssetImage("images/clear/night/$length.jpg");
+        }
+      }
+    } else if (condition == 802) {
+      //partly cloudy
+      if (day) {
+        length = random.nextInt(5) + 1;
+        return AssetImage("images/partlyCloudy/day/$length.jpg");
+      } else {
+        length = random.nextInt(3) + 1;
+        return AssetImage("images/partlyCloudy/night/$length.jpg");
+      }
+    } else if (condition == 803) {
+      // mostly cloudy
+      if (day) {
+        length = random.nextInt(3) + 1;
+        return AssetImage("images/mostlyCloudy/day/$length.jpg");
+      } else {
+        length = random.nextInt(3) + 1;
+        return AssetImage("images/mostlyCloudy/night/$length.jpg");
+      }
+    } else if (condition == 804) {
+      //cloudy
+      if (day) {
+        length = random.nextInt(3) + 1;
+        return AssetImage("images/cloudy/day/$length.jpg");
+      } else {
+        length = random.nextInt(3) + 1;
+        return AssetImage("images/mostlyCloudy/night/$length.jpg");
+      }
+    } else {
+      return const AssetImage("images/Error.jpg");
+    }
   }
 }
-
-// writes data to the file
-Future<File> writeWeatherData(var weatherJson) async {
-  final file = await localFile;
-  DateTime writeTime = DateTime.now();
-
-  // Write the file
-  return file.writeAsString('$writeTime \n $weatherJson');
-}
-
-// reads data from the file
-Future<String> readWeatherData() async {
-  try {
-    final file = await localFile;
-
-    // Read the file
-    final contents = await file.readAsString();
-
-    return contents;
-  } catch (e) {
-    // If encountering an error
-    print("Error reading local file: $e");
-    return "Error";
-  }
-}
+//
+// // writes data to the file
+// Future<File> writeWeatherData(var weatherJson) async {
+//   final file = await localFile;
+//   DateTime writeTime = DateTime.now();
+//
+//   // Write the file
+//   return file.writeAsString('$writeTime \n $weatherJson');
+// }
+//
+// // reads data from the file
+// Future<String> readWeatherData() async {
+//   try {
+//     final file = await localFile;
+//
+//     // Read the file
+//     final contents = await file.readAsString();
+//
+//     return contents;
+//   } catch (e) {
+//     // If encountering an error
+//     print("Error reading local file: $e");
+//     return "Error";
+//   }
+// }

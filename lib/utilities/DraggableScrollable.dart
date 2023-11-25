@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:klimate/services/global_variables.dart';
-import 'package:klimate/services/weather.dart';
 import 'package:klimate/utilities/WeatherData.dart';
 import 'package:klimate/utilities/weatherListWidgets.dart';
 
@@ -8,11 +7,11 @@ DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList
   return DraggableScrollableSheet(
     initialChildSize: 0.15,
     minChildSize: 0.15,
-    maxChildSize: 0.99,
+    maxChildSize: 1,
     builder: (BuildContext context, ScrollController scrollController) => ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       child: Container(
-        color: Colors.white,
+        color: Colors.grey[50],
         child: ListView.builder(
           shrinkWrap: true,
           controller: scrollController,
@@ -30,12 +29,17 @@ DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList
 }
 
 List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
-  List bottomWeatherList = [ScollableWeatherTiles(context), SevenDayForecast(context), DetailsOfTheDay()];
+  List bottomWeatherList = [
+    ScollableWeatherTiles(context, currentWeather),
+    SevenDayForecast(context),
+    DetailsOfTheDay(context, currentWeather),
+    AdMobBanner()
+  ];
 
   return bottomWeatherList;
 }
 
-Card ScollableWeatherTiles(BuildContext context) {
+Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
   List hourlyWeatherTile = createWeatherTiles();
   return Card(
     color: Colors.white,
@@ -76,28 +80,31 @@ SizedBox SevenDayForecast(BuildContext context) {
   );
 }
 
-Card DetailsOfTheDay() {
+Card DetailsOfTheDay(BuildContext context, WeatherData currentWeather) {
+  double cardHeight = MediaQuery.of(context).size.height / 9;
   return Card(
-    color: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topRight: Radius.circular(30), topLeft: Radius.circular(30))),
-    child: Row(
+    elevation: 0,
+    color: Colors.transparent,
+    child: Column(
       children: [
-        Container(
-          height: 100,
-          width: 100,
-          color: Colors.red,
+        //createSunriseSunset(currentWeather),
+        Row(
+          children: [
+            Expanded(child: SizedBox(height: cardHeight, child: createHumidity(currentWeather))),
+            Expanded(child: SizedBox(height: cardHeight, child: createWind(currentWeather))),
+            Expanded(child: SizedBox(height: cardHeight, child: createUVIndex(currentWeather))),
+          ],
         ),
-        Container(
-          height: 100,
-          width: 100,
-          color: Colors.green,
-        ),
-        Container(
-          height: 100,
-          width: 100,
-          color: Colors.blue,
-        )
+        createSunriseSunset(currentWeather),
       ],
     ),
+  );
+}
+
+Container AdMobBanner() {
+  return Container(
+    height: 50,
+    width: 320,
+    color: Colors.green,
   );
 }

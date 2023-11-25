@@ -6,6 +6,8 @@ import 'package:klimate/services/weather.dart';
 import 'package:klimate/utilities/WeatherData.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../utilities/helper_functions.dart';
+
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({Key? key}) : super(key: key);
 
@@ -55,35 +57,34 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   void getLocationData() async {
     // check to see if we need to make another API response or not by reading local weather file
-    String content =
-        await readWeatherData(); //TODO: Remove this and make it so you can check the 1 global object which is the only thing saved in secure storage/ shared preferences
-    var weatherDataOld;
+    // String content =
+    //     await readWeatherData(); //TODO: Remove this and make it so you can check the 1 global object which is the only thing saved in secure storage/ shared preferences
+
     //if there is data in the file
-    if (content != "Error") {
-      int i = 0;
-      String lastWrite = "";
-      // while (content[i] != "\n" || i < content.length) {
-      //   lastWrite += content[i];
-      //   i++;
-      // }
-      //DateTime writeTime = DateTime.parse(lastWrite);
-      //check to see if writeTime is larger than 1 hour
-      // if yes, can make new API request and write to file
-      // if no, weatherDataOld = read from file
-      weatherDataOld = await getCurrentLocationWeather();
-    } else {
-      // we can make a new API request and write to file
-      weatherDataOld = await getCurrentLocationWeather();
-    }
+    // if (content != "Error") {
+    //   int i = 0;
+    //   String lastWrite = "";
+    // while (content[i] != "\n" || i < content.length) {
+    //   lastWrite += content[i];
+    //   i++;
+    // }
+    //DateTime writeTime = DateTime.parse(lastWrite);
+    //check to see if writeTime is larger than 1 hour
+    // if yes, can make new API request and write to file
+    // if no, weatherDataOld = read from file
+    // } else {
+    //   // we can make a new API request and write to file
+    // }
     global_CurrentWeatherData = await getCurrentLocationWeather(); //calls the current weather api
     global_HourlyWeatherData = await getHourlyLocationWeather(); //calls the hourly weather api
 
     //want to store this information from both apis into 1 global weather object
-    WeatherData weatherData = WeatherData();
+    WeatherData currentWeatherData = WeatherData();
+    global_FahrenheitUnits.value = await getTemperatureUnits();
 
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return HomeScreen(
-        locationWeather: weatherDataOld,
+        locationWeather: currentWeatherData,
       );
     }));
   }

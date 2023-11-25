@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+import '../services/global_variables.dart';
 
 String getLocalTime(int hour, int minutes) {
   String time = "";
@@ -60,16 +63,99 @@ extension StringCasingExtension on String {
   String toCapitalized() => length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
   String toTitleCase() => replaceAll(RegExp(' +'), ' ').split(' ').map((str) => str.toCapitalized()).join(' ');
 }
+//
+// // finds the correct local path to create a local file
+// Future<String> get _localPath async {
+//   final directory = await getApplicationDocumentsDirectory();
+//
+//   return directory.path;
+// }
+//
+// // creates a reference to the file location using _localPath
+// Future<File> get localFile async {
+//   final path = await _localPath;
+//   return File('$path/counter.txt');
+// }
 
-// finds the correct local path to create a local file
-Future<String> get _localPath async {
-  final directory = await getApplicationDocumentsDirectory();
-
-  return directory.path;
+setToFahrenheit() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  global_FahrenheitUnits.value = 1;
+  prefs.setBool("Fahrenheit", true);
 }
 
-// creates a reference to the file location using _localPath
-Future<File> get localFile async {
-  final path = await _localPath;
-  return File('$path/counter.txt');
+setToCelsius() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  global_FahrenheitUnits.value = 0;
+  prefs.setBool("Fahrenheit", false);
+}
+
+getTemperatureUnits() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  if (prefs.getBool("Fahrenheit") == true) {
+    return 1;
+  }
+  return 0;
+}
+
+double fahrenheitToCelsius(int temp) {
+  double num = double.parse(((temp - 32) * 5 / 9).toStringAsFixed(1));
+  return num;
+}
+
+num convertUnitsIfNeedBe(int temp) {
+  if (global_FahrenheitUnits.value == 1) {
+    return temp;
+  }
+  return fahrenheitToCelsius(temp);
+}
+
+String mphToKmph(double mph) {
+  if (global_FahrenheitUnits.value == 1) {
+    return "$mph mph";
+  }
+  return "${(mph * 1.60934).toStringAsFixed(2)} kmph";
+}
+
+class convertSpeedUnits extends StatefulWidget {
+  const convertSpeedUnits({super.key, required this.speed, required this.textStyle});
+  final speed;
+  final TextStyle textStyle;
+  @override
+  State<convertSpeedUnits> createState() => _convertSpeedUnitsState();
+}
+
+class _convertSpeedUnitsState extends State<convertSpeedUnits> {
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+        valueListenable: global_FahrenheitUnits,
+        builder: (BuildContext context, int value, Widget? child) {
+          return Text(
+            mphToKmph(widget.speed),
+            style: widget.textStyle,
+          );
+        });
+  }
+}
+
+class convertTempUnits extends StatefulWidget {
+  const convertTempUnits({super.key, required this.temp, required this.textStyle});
+  final temp;
+  final TextStyle textStyle;
+  @override
+  State<convertTempUnits> createState() => _convertTempUnitsState();
+}
+
+class _convertTempUnitsState extends State<convertTempUnits> {
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+        valueListenable: global_FahrenheitUnits,
+        builder: (BuildContext context, int value, Widget? child) {
+          return Text(
+            "${convertUnitsIfNeedBe(widget.temp)}°",
+            style: widget.textStyle,
+          );
+        });
+  }
 }

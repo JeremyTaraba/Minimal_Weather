@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/DraggableScrollable.dart';
 import 'package:klimate/utilities/appBar.dart';
 import 'package:klimate/utilities/helper_functions.dart';
@@ -22,14 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // currentWeather.readWeatherData().then((value) {
-    //   setState(() {
-    //     counter = value;
-    //   });
-    //   currentWeather.writeWeatherData(value + 1);
-    // });
-
-    currentWeather.updateUI(widget.locationWeather);
   }
 
   @override
@@ -49,44 +42,51 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Scaffold(
             resizeToAvoidBottomInset: false,
             backgroundColor: Colors.transparent,
-            appBar: weatherAppBar(context, currentWeather),
-            body: Stack(
-              fit: StackFit.expand,
-              children: [
-                Column(
+            appBar: LocationAppBar(
+              currentWeather: currentWeather,
+            ),
+            body: ValueListenableBuilder(
+              valueListenable: global_FahrenheitUnits,
+              builder: (BuildContext context, int value, Widget? child) {
+                return Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Flexible(flex: 1, child: Container()),
-                    Flexible(
-                      flex: 6,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0),
-                            child: GradientText(
-                              "${currentWeather.temperature}°",
-                              style: kTempStyle,
-                              gradient: kTempGradient,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 20.0),
-                            child: RotatedBox(
-                              quarterTurns: 3,
-                              child: Text(
-                                currentWeather.description.toTitleCase(),
-                                style: kDescriptionStyle,
+                    Column(
+                      children: [
+                        Flexible(flex: 1, child: Container()),
+                        Flexible(
+                          flex: 6,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 20.0),
+                                child: GradientText(
+                                  "${convertUnitsIfNeedBe(currentWeather.temperature)}°",
+                                  style: kTempStyle,
+                                  gradient: kTempGradient,
+                                ),
                               ),
-                            ),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 20.0),
+                                child: RotatedBox(
+                                  quarterTurns: 3,
+                                  child: Text(
+                                    currentWeather.description.toTitleCase(),
+                                    style: kDescriptionStyle,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                    DraggableScollableWeatherDetails(bottomWeatherList),
                   ],
-                ),
-                DraggableScollableWeatherDetails(bottomWeatherList),
-              ],
+                );
+              },
             ),
           ),
         ),
