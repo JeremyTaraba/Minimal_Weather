@@ -16,27 +16,57 @@ class LocationAppBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _LocationAppBarState extends State<LocationAppBar> {
   TextEditingController cityName = TextEditingController();
+  String originalName = "";
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     cityName.text = widget.currentWeather.cityName;
+    originalName = widget.currentWeather.cityName;
   }
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leadingWidth: MediaQuery.of(context).size.width / 1.5,
-      leading: Wrap(
-        runAlignment: WrapAlignment.center,
-        children: [
-          Icon(Icons.location_on_outlined),
-          TextField(
-            controller: cityName,
-            style: kCityLocationStyle,
-          ),
-        ],
+      leadingWidth: MediaQuery.of(context).size.width / 1.2,
+      leading: Padding(
+        padding: const EdgeInsets.only(top: 4.0),
+        child: Wrap(
+          runAlignment: WrapAlignment.start,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.all(Radius.circular(30)),
+              ),
+              child: TextField(
+                onTapOutside: (downEvent) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  setState(() {
+                    cityName.text = originalName;
+                  });
+                },
+                onSubmitted: (value) {
+                  setState(() {
+                    cityName.text = value.toTitleCase();
+                    originalName = value.toTitleCase();
+                  });
+                },
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  prefixIcon: Icon(
+                    Icons.location_on_outlined,
+                    color: Colors.white,
+                  ),
+                ),
+                controller: cityName,
+                style: kCityLocationStyle,
+                maxLines: 1,
+              ),
+            ),
+          ],
+        ),
       ),
       actions: [
         Padding(
