@@ -7,22 +7,22 @@ import 'custom_icons.dart';
 
 class WeatherTile {
   int twentyFourHour = 0;
-  int condition = 0;
+  String icon = "";
   double temp = 0;
+  String description = "";
 
-  WeatherTile(this.twentyFourHour, this.condition, this.temp);
+  WeatherTile(this.twentyFourHour, this.icon, this.temp, this.description);
 
-  Column _generateTile() {
+  Column _generateTile(int tileNumber) {
     return Column(
       children: [
         Text(
           getTimeWithAMPM(twentyFourHour, 0),
           style: TextStyle(color: Colors.black),
         ),
-        Icon(
-          Icons.sunny,
-          color: Colors.orange,
-          size: 50,
+        Padding(
+          padding: EdgeInsets.only(bottom: 2),
+          child: getWeatherIcon(icon, 45, description),
         ),
         convertTempUnits(
           temp: temp,
@@ -41,19 +41,20 @@ List createWeatherTiles() {
     int epochTime = hourly[i]["dt"];
     var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
 
-    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["id"], (hourly[i]["temp"]));
-    weatherTiles.add(temp._generateTile());
+    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["icon"], hourly[i]["temp"], hourly[i]["weather"][0]["description"]);
+    weatherTiles.add(temp._generateTile(i));
   }
   return weatherTiles;
 }
 
 class WeatherBanner {
   int weekDay; //1 = Monday, 7 = Sunday
-  int condition = 0;
+  String icon = "";
   double minTemp = 0;
   double maxTemp = 0;
+  String description = "";
 
-  WeatherBanner(this.weekDay, this.condition, this.minTemp, this.maxTemp);
+  WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description);
 
   Row _generateBanner() {
     return Row(
@@ -68,11 +69,7 @@ class WeatherBanner {
         Flexible(child: Container()),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
-          child: Icon(
-            Icons.sunny,
-            color: Colors.orange,
-            size: 40,
-          ),
+          child: getWeatherIcon(icon, 40, description),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -108,9 +105,10 @@ List createWeatherBanners() {
     var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
     WeatherBanner temp = WeatherBanner(
       i == 0 ? 0 : date.weekday,
-      daily[i]["weather"][0]["id"].toInt(),
+      daily[i]["weather"][0]["icon"],
       daily[i]["temp"]["min"],
       daily[i]["temp"]["max"],
+      daily[i]["weather"][0]["description"],
     );
     weatherBanners.add(temp._generateBanner());
   }
@@ -226,7 +224,7 @@ Card createUVIndex(WeatherData currentWeather) {
         ),
         Icon(
           Icons.brightness_7_outlined,
-          color: Colors.purpleAccent,
+          color: Colors.deepPurpleAccent,
           size: 40,
         ),
         Padding(

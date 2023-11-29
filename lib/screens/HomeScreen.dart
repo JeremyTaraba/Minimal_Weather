@@ -31,14 +31,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return WillPopScope(
       onWillPop: () => Future.value(false),
-      child: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("images/clear/day/1.jpg"),
-            fit: BoxFit.cover,
+      child: Stack(children: [
+        Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("images/clear1.png"),
+              fit: BoxFit.cover,
+            ),
           ),
         ),
-        child: SafeArea(
+        Container(
+          decoration: BoxDecoration(
+              color: Colors.white,
+              gradient: LinearGradient(begin: FractionalOffset.topCenter, end: FractionalOffset.bottomCenter, colors: [
+                Colors.black.withOpacity(.5),
+                Colors.transparent,
+              ], stops: [
+                0.0,
+                0.4,
+              ])),
+        ),
+        SafeArea(
           child: Scaffold(
             resizeToAvoidBottomInset: false,
             backgroundColor: Colors.transparent,
@@ -57,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Flexible(
                           flex: 6,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
@@ -68,17 +81,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   gradient: kTempGradient,
                                 ),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(right: 20.0),
-                                child: RotatedBox(
-                                  quarterTurns: 3,
-                                  child: Text(
-                                    currentWeather.description.toTitleCase(),
-                                    style: kDescriptionStyle,
-                                  ),
-                                ),
-                              ),
                             ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 20.0),
+                          child: Text(
+                            currentWeather.description.toTitleCase(),
+                            style: kDescriptionStyle,
                           ),
                         ),
                       ],
@@ -90,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-      ),
+      ]),
     );
   }
 }

@@ -23,6 +23,9 @@ class WeatherData {
   int humidity = 0;
   double windSpeed = 0;
   int uvIndex = 0;
+  String currentIconNumber = "";
+  List<String> dailyIconNumber = [];
+  List<String> hourlyIconNumber = [];
 
   WeatherData() {
     // sets all the variables we need
@@ -42,6 +45,13 @@ class WeatherData {
     humidity = global_HourlyWeatherData["current"]["humidity"].toInt();
     windSpeed = double.parse(global_HourlyWeatherData["current"]["wind_speed"].toString());
     uvIndex = global_HourlyWeatherData["current"]["uvi"].toInt();
+    currentIconNumber = global_HourlyWeatherData["current"]["weather"][0]["icon"];
+    for (int i = 0; i < 24; i++) {
+      hourlyIconNumber.add(global_HourlyWeatherData["hourly"][i]["weather"][0]["icon"]);
+    }
+    for (int i = 0; i < 7; i++) {
+      dailyIconNumber.add(global_HourlyWeatherData["daily"][i]["weather"][0]["icon"]);
+    }
   }
 
   AssetImage _getBackground(int condition, int hour, int sunrise, int sunset) {

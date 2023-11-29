@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 const TextStyle kTempStyle = TextStyle(
   fontSize: 130,
   fontWeight: FontWeight.bold,
-  fontFamily: 'Alice',
+  fontFamily: 'Hedvig',
 );
 
 const TextStyle kCityLocationStyle = TextStyle(
@@ -21,19 +21,15 @@ LinearGradient kTempGradient = LinearGradient(
   end: Alignment.bottomCenter,
   colors: [
     Colors.white,
-    Colors.white.withOpacity(0.8),
-    Colors.white.withOpacity(0.6),
-    Colors.white.withOpacity(0.4),
-    Colors.white.withOpacity(0.2),
-    Colors.white.withOpacity(0),
+    // Colors.white.withOpacity(0.8),
+    // Colors.white.withOpacity(0.4),
+    // Colors.white.withOpacity(0.2),
   ],
   stops: const [
     0.0,
-    0.5,
-    0.6,
-    0.7,
-    0.8,
-    1,
+    // 0.7,
+    // 0.8,
+    // 1,
   ],
 );
 

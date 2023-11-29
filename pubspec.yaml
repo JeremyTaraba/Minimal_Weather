@@ -103,9 +103,17 @@ flutter:
       fonts:
         - asset: fonts/CustomIcons.ttf
 
+    - family: WeatherIcons
+      fonts:
+        - asset: fonts/WeatherIcons.ttf
+
     - family: Alice
       fonts:
         - asset: fonts/Alice.ttf
+
+    - family: Hedvig
+      fonts:
+        - asset: fonts/Hedvig.ttf
   #   - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf

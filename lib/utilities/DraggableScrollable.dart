@@ -11,7 +11,7 @@ DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList
     builder: (BuildContext context, ScrollController scrollController) => ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       child: Container(
-        color: Colors.grey[50],
+        color: Colors.white70,
         child: ListView.builder(
           shrinkWrap: true,
           controller: scrollController,

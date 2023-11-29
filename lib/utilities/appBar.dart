@@ -49,8 +49,8 @@ class _LocationAppBarState extends State<LocationAppBar> {
                 },
                 onSubmitted: (value) {
                   setState(() {
-                    cityName.text = value.toTitleCase();
-                    originalName = value.toTitleCase();
+                    cityName.text = value.toTitleCase().trim();
+                    originalName = value.toTitleCase().trim();
                   });
                 },
                 decoration: InputDecoration(

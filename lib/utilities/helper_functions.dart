@@ -4,6 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import '../services/global_variables.dart';
+import 'custom_icons.dart';
 
 String getLocalTime(int hour, int minutes) {
   String time = "";
@@ -162,5 +163,43 @@ class _convertTempUnitsState extends State<convertTempUnits> {
             style: widget.textStyle,
           );
         });
+  }
+}
+
+Icon getWeatherIcon(String iconNumber, double size, String description) {
+  switch (iconNumber) {
+    case "01d":
+      return Icon(WeatherIcons.sun, size: size, color: Colors.orange[600]);
+    case "01n":
+      return Icon(WeatherIcons.moon, size: size, color: Colors.deepPurple[300]);
+    case "02d":
+    case "03d":
+      return Icon(WeatherIcons.cloud_sun, size: size, color: Colors.orange[200]);
+    case "02n":
+    case "03n":
+      return Icon(WeatherIcons.cloud_moon, size: size, color: Colors.deepPurple[600]);
+
+    case "04n":
+    case "04d":
+      return Icon(WeatherIcons.clouds, size: size, color: Colors.grey[600]);
+    case "09n":
+    case "09d":
+    case "10d":
+    case "10n":
+      if (description == "light rain") {
+        return Icon(WeatherIcons.drizzle, size: size, color: Colors.blue[300]);
+      }
+      return Icon(WeatherIcons.rain, size: size, color: Colors.indigo);
+    case "11n":
+    case "11d":
+      return Icon(WeatherIcons.cloud_flash_alt, size: size, color: Colors.yellow);
+    case "13n":
+    case "13d":
+      return Icon(WeatherIcons.snow_heavy, size: size, color: Colors.grey);
+    case "50n":
+    case "50d":
+      return Icon(WeatherIcons.fog, size: size, color: Colors.grey);
+    default:
+      return Icon(WeatherIcons.sun, size: size, color: Colors.orange[600]);
   }
 }
