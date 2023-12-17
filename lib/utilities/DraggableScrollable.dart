@@ -43,7 +43,7 @@ Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
   List hourlyWeatherTile = createWeatherTiles();
   return Card(
     color: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topRight: Radius.circular(30), topLeft: Radius.circular(30))),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
     child: SizedBox(
       height: MediaQuery.of(context).size.width / 4,
       child: ListView.builder(

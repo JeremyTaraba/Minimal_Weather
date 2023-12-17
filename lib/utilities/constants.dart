@@ -12,8 +12,9 @@ const TextStyle kCityLocationStyle = TextStyle(
 );
 
 const TextStyle kDescriptionStyle = TextStyle(
-  fontSize: 30,
+  fontSize: 40,
   fontFamily: 'Alice',
+  fontWeight: FontWeight.bold,
 );
 
 LinearGradient kTempGradient = LinearGradient(

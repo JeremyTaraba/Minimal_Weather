@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:klimate/screens/loading_new_city.dart';
 import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/helper_functions.dart';
-
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'constants.dart';
 
 class LocationAppBar extends StatefulWidget implements PreferredSizeWidget {
@@ -36,34 +37,83 @@ class _LocationAppBarState extends State<LocationAppBar> {
           runAlignment: WrapAlignment.start,
           children: [
             Container(
+              height: MediaQuery.of(context).size.height / 20,
               decoration: BoxDecoration(
                 color: Colors.white24,
                 borderRadius: BorderRadius.all(Radius.circular(30)),
               ),
-              child: TextField(
-                onTapOutside: (downEvent) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                  setState(() {
-                    cityName.text = originalName;
-                  });
+              child: TypeAheadField(
+                builder: (context, cityName, focusNode) {
+                  return TextField(
+                    onTapOutside: (downEvent) {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      setState(() {
+                        cityName.text = originalName;
+                      });
+                    },
+                    onSubmitted: (value) {
+                      setState(() {
+                        cityName.text = value.toTitleCase().trim();
+                        originalName = value.toTitleCase().trim();
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+                          return loadingNewCity(cityName: cityName.text);
+                        }));
+                      });
+                    },
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      prefixIcon: Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.white,
+                      ),
+                    ),
+                    controller: cityName,
+                    style: kCityLocationStyle,
+                    maxLines: 1,
+                  );
                 },
-                onSubmitted: (value) {
-                  setState(() {
-                    cityName.text = value.toTitleCase().trim();
-                    originalName = value.toTitleCase().trim();
-                  });
+                onSelected: (Object? value) {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+                    return loadingNewCity(cityName: value.toString());
+                  }));
                 },
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  prefixIcon: Icon(
-                    Icons.location_on_outlined,
-                    color: Colors.white,
-                  ),
-                ),
-                controller: cityName,
-                style: kCityLocationStyle,
-                maxLines: 1,
+                suggestionsCallback: (String search) {
+                  return ["City1", "City2", search];
+                },
+                itemBuilder: (context, String city) {
+                  return ListTile(
+                    title: Text(city),
+                    subtitle: Text(city),
+                  );
+                },
               ),
+              // child: TextField(
+              //   onTapOutside: (downEvent) {
+              //     FocusManager.instance.primaryFocus?.unfocus();
+              //     setState(() {
+              //       cityName.text = originalName;
+              //     });
+              //   },
+              //   onSubmitted: (value) {
+              //     setState(() {
+              //       cityName.text = value.toTitleCase().trim();
+              //       originalName = value.toTitleCase().trim();
+              //       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+              //         return loadingNewCity(cityName: cityName.text);
+              //       }));
+              //     });
+              //   },
+              //   decoration: InputDecoration(
+              //     border: InputBorder.none,
+              //     prefixIcon: Icon(
+              //       Icons.location_on_outlined,
+              //       color: Colors.white,
+              //     ),
+              //   ),
+              //   controller: cityName,
+              //   style: kCityLocationStyle,
+              //   maxLines: 1,
+              // ),
             ),
           ],
         ),

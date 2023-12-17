@@ -8,7 +8,7 @@ import 'custom_icons.dart';
 class WeatherTile {
   int twentyFourHour = 0;
   String icon = "";
-  double temp = 0;
+  num temp = 0;
   String description = "";
 
   WeatherTile(this.twentyFourHour, this.icon, this.temp, this.description);
@@ -20,10 +20,7 @@ class WeatherTile {
           getTimeWithAMPM(twentyFourHour, 0),
           style: TextStyle(color: Colors.black),
         ),
-        Padding(
-          padding: EdgeInsets.only(bottom: 2),
-          child: getWeatherIcon(icon, 45, description),
-        ),
+        getWeatherIcon(icon, 40, description),
         convertTempUnits(
           temp: temp,
           textStyle: TextStyle(color: Colors.black),
@@ -50,8 +47,8 @@ List createWeatherTiles() {
 class WeatherBanner {
   int weekDay; //1 = Monday, 7 = Sunday
   String icon = "";
-  double minTemp = 0;
-  double maxTemp = 0;
+  num minTemp = 0;
+  num maxTemp = 0;
   String description = "";
 
   WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description);
@@ -173,7 +170,7 @@ Card createHumidity(WeatherData currentWeather) {
         Icon(
           Icons.water_drop,
           color: Colors.blue,
-          size: 40,
+          size: 30,
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -199,7 +196,7 @@ Card createWind(WeatherData currentWeather) {
         Icon(
           Icons.air,
           color: Colors.lightBlueAccent,
-          size: 40,
+          size: 30,
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -225,7 +222,7 @@ Card createUVIndex(WeatherData currentWeather) {
         Icon(
           Icons.brightness_7_outlined,
           color: Colors.deepPurpleAccent,
-          size: 40,
+          size: 30,
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),

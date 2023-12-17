@@ -159,7 +159,7 @@ class _convertTempUnitsState extends State<convertTempUnits> {
         valueListenable: global_FahrenheitUnits,
         builder: (BuildContext context, int value, Widget? child) {
           return Text(
-            "${convertUnitsIfNeedBe(widget.temp)}°",
+            "${convertUnitsIfNeedBe(widget.temp.toDouble())}°",
             style: widget.textStyle,
           );
         });

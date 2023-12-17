@@ -20,7 +20,7 @@ class WeatherData {
   double highTemp = 0;
   double lowTemp = 0;
   late AssetImage background;
-  int humidity = 0;
+  num humidity = 0;
   double windSpeed = 0;
   int uvIndex = 0;
   String currentIconNumber = "";
@@ -31,7 +31,7 @@ class WeatherData {
     // sets all the variables we need
     writeTime = DateTime.now();
     temperature = global_HourlyWeatherData['current']['temp'];
-    condition = global_HourlyWeatherData["current"]['weather'][0]['id'];
+    condition = global_HourlyWeatherData["current"]['weather'][0]['id'].toInt();
     cityName = global_CurrentWeatherData['name'];
     description = global_HourlyWeatherData["current"]["weather"][0]["description"];
 
