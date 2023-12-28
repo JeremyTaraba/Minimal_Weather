@@ -157,6 +157,14 @@ Future<dynamic> getCurrentLocationWeatherWithName(String cityName) async {
   return weatherData;
 }
 
+Future<dynamic> getAllCities(String cityName) async {
+  List<double> pair = [0, 0]; //lat = 0, long = 1
+  NetworkHelper networkHelper = NetworkHelper("https://api.openweathermap.org/geo/1.0/direct?q=$cityName&limit=5&appid=$apiKey");
+
+  var weatherData = await networkHelper.getData();
+  return weatherData;
+}
+
 Future<dynamic> getHourlyLocationWeatherWithName(String cityName) async {
   List<double> pair = [0, 0]; //lat = 0, long = 1
   NetworkHelper latAndLong = NetworkHelper("https://api.openweathermap.org/geo/1.0/direct?q=$cityName&limit=5&appid=$apiKey");

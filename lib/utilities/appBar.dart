@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:klimate/screens/loading_new_city.dart';
 import 'package:klimate/services/global_variables.dart';
+import 'package:klimate/utilities/City.dart';
 import 'package:klimate/utilities/helper_functions.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'constants.dart';
@@ -16,14 +17,14 @@ class LocationAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _LocationAppBarState extends State<LocationAppBar> {
-  TextEditingController cityName = TextEditingController();
+  TextEditingController textController = TextEditingController();
   String originalName = "";
+  SuggestionsController<City> suggestionsController = SuggestionsController<City>();
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    cityName.text = widget.currentWeather.cityName;
+    textController.text = widget.currentWeather.cityName;
     originalName = widget.currentWeather.cityName;
   }
 
@@ -42,24 +43,26 @@ class _LocationAppBarState extends State<LocationAppBar> {
                 color: Colors.white24,
                 borderRadius: BorderRadius.all(Radius.circular(30)),
               ),
-              child: TypeAheadField(
-                builder: (context, cityName, focusNode) {
+              child: TypeAheadField<City>(
+                suggestionsCallback: allCities,
+                suggestionsController: suggestionsController,
+                builder: (context, textController, focusNode) {
                   return TextField(
                     onTapOutside: (downEvent) {
                       FocusManager.instance.primaryFocus?.unfocus();
                       setState(() {
-                        cityName.text = originalName;
+                        textController.text = originalName;
                       });
                     },
-                    onSubmitted: (value) {
-                      setState(() {
-                        cityName.text = value.toTitleCase().trim();
-                        originalName = value.toTitleCase().trim();
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                          return loadingNewCity(cityName: cityName.text);
-                        }));
-                      });
-                    },
+                    // onSubmitted: (value) {
+                    //   setState(() {
+                    //     textController.text = value.toTitleCase().trim();
+                    //     originalName = value.toTitleCase().trim();
+                    //     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+                    //       return loadingNewCity(cityName: textController.text);
+                    //     }));
+                    //   });
+                    // },
                     decoration: InputDecoration(
                       border: InputBorder.none,
                       prefixIcon: Icon(
@@ -67,7 +70,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
                         color: Colors.white,
                       ),
                     ),
-                    controller: cityName,
+                    controller: textController,
                     style: kCityLocationStyle,
                     maxLines: 1,
                   );
@@ -77,15 +80,16 @@ class _LocationAppBarState extends State<LocationAppBar> {
                     return loadingNewCity(cityName: value.toString());
                   }));
                 },
-                suggestionsCallback: (String search) {
-                  return ["City1", "City2", search];
-                },
-                itemBuilder: (context, String city) {
-                  return ListTile(
-                    title: Text(city),
-                    subtitle: Text(city),
-                  );
-                },
+                itemBuilder: (context, City) => ListTile(
+                  title: Text(City.city),
+                  subtitle: City.state != null
+                      ? Text(
+                          '${City.state}, ${City.country}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : Text('\$${City.country}'),
+                ),
               ),
               // child: TextField(
               //   onTapOutside: (downEvent) {
