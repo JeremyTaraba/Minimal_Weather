@@ -144,35 +144,15 @@ Future<dynamic> getHourlyLocationWeather() async {
   return weatherData;
 }
 
-Future<dynamic> getCurrentLocationWeatherWithName(String cityName) async {
-  List<double> pair = [0, 0]; //lat = 0, long = 1
-  NetworkHelper latAndLong = NetworkHelper("https://api.openweathermap.org/geo/1.0/direct?q=$cityName&limit=5&appid=$apiKey");
-  var location = await latAndLong.getData();
-  pair[0] = location[1]["lat"];
-  pair[1] = location[1]["lon"];
-
-  NetworkHelper networkHelper = NetworkHelper('$openWeatherMapURLCurrentWeather?lat=${pair[0]}&lon=${pair[1]}&appid=$apiKey&units=imperial');
+Future<dynamic> getCurrentLocationWeatherWithLatLon(num lat, num long) async {
+  NetworkHelper networkHelper = NetworkHelper('$openWeatherMapURLCurrentWeather?lat=$lat&lon=$long&appid=$apiKey&units=imperial');
 
   var weatherData = await networkHelper.getData();
   return weatherData;
 }
 
-Future<dynamic> getAllCities(String cityName) async {
-  List<double> pair = [0, 0]; //lat = 0, long = 1
-  NetworkHelper networkHelper = NetworkHelper("https://api.openweathermap.org/geo/1.0/direct?q=$cityName&limit=5&appid=$apiKey");
-
-  var weatherData = await networkHelper.getData();
-  return weatherData;
-}
-
-Future<dynamic> getHourlyLocationWeatherWithName(String cityName) async {
-  List<double> pair = [0, 0]; //lat = 0, long = 1
-  NetworkHelper latAndLong = NetworkHelper("https://api.openweathermap.org/geo/1.0/direct?q=$cityName&limit=5&appid=$apiKey");
-  var location = await latAndLong.getData();
-  pair[0] = location[1]["lat"];
-  pair[1] = location[1]["lon"];
-
-  NetworkHelper networkHelper = NetworkHelper('$openWeatherMapURLHourly?lat=${pair[0]}&lon=${pair[1]}&exclude=minutely&appid=$apiKey');
+Future<dynamic> getHourlyLocationWeatherWithLatLon(num lat, num long) async {
+  NetworkHelper networkHelper = NetworkHelper('$openWeatherMapURLHourly?lat=$lat&lon=$long&exclude=minutely&appid=$apiKey');
 
   var weatherData = await networkHelper.getData();
   return weatherData;

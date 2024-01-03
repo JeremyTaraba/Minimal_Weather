@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:klimate/services/global_variables.dart';
+
 import 'package:klimate/utilities/WeatherData.dart';
 import 'package:klimate/utilities/weatherListWidgets.dart';
 
 DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList) {
   return DraggableScrollableSheet(
-    initialChildSize: 0.15,
-    minChildSize: 0.15,
+    initialChildSize: 0.17,
+    minChildSize: 0.17,
     maxChildSize: 1,
     builder: (BuildContext context, ScrollController scrollController) => ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       child: Container(
-        color: Colors.white70,
+        color: Colors.white,
         child: ListView.builder(
           shrinkWrap: true,
           controller: scrollController,
@@ -33,7 +33,7 @@ List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
     ScollableWeatherTiles(context, currentWeather),
     SevenDayForecast(context),
     DetailsOfTheDay(context, currentWeather),
-    AdMobBanner()
+    //AdMobBanner() //ad space
   ];
 
   return bottomWeatherList;
@@ -45,7 +45,7 @@ Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
     color: Colors.white,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
     child: SizedBox(
-      height: MediaQuery.of(context).size.width / 4,
+      height: MediaQuery.of(context).size.width / 3.3,
       child: ListView.builder(
         physics: const ClampingScrollPhysics(),
         shrinkWrap: true,

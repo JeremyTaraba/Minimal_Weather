@@ -10,8 +10,9 @@ class WeatherTile {
   String icon = "";
   num temp = 0;
   String description = "";
-
-  WeatherTile(this.twentyFourHour, this.icon, this.temp, this.description);
+  String main = "";
+  num pop = 0;
+  WeatherTile(this.twentyFourHour, this.icon, this.temp, this.description, this.main, this.pop);
 
   Column _generateTile(int tileNumber) {
     return Column(
@@ -19,6 +20,13 @@ class WeatherTile {
         Text(
           getTimeWithAMPM(twentyFourHour, 0),
           style: TextStyle(color: Colors.black),
+        ),
+        Container(
+          height: 20,
+          child: Text(
+            main == "Rain" ? "${(pop * 100).toInt()}%" : "",
+            style: TextStyle(color: Colors.blue),
+          ),
         ),
         getWeatherIcon(icon, 40, description),
         convertTempUnits(
@@ -38,7 +46,8 @@ List createWeatherTiles() {
     int epochTime = hourly[i]["dt"];
     var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
 
-    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["icon"], hourly[i]["temp"], hourly[i]["weather"][0]["description"]);
+    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["icon"], hourly[i]["temp"], hourly[i]["weather"][0]["description"],
+        hourly[i]["weather"][0]["main"], hourly[i]["pop"]);
     weatherTiles.add(temp._generateTile(i));
   }
   return weatherTiles;
@@ -123,7 +132,7 @@ Card createSunriseSunset(WeatherData currentWeather) {
           Row(
             children: [
               Text(
-                "Sunrise",
+                "Sunrise ",
                 style: TextStyle(color: Colors.black),
               ),
               Icon(
@@ -138,7 +147,7 @@ Card createSunriseSunset(WeatherData currentWeather) {
           Row(
             children: [
               Text(
-                "Sunset",
+                "Sunset ",
                 style: TextStyle(color: Colors.black),
               ),
               Icon(
@@ -159,75 +168,35 @@ Card createSunriseSunset(WeatherData currentWeather) {
 }
 
 Card createHumidity(WeatherData currentWeather) {
-  return Card(
-    color: Colors.white,
-    child: Column(
-      children: [
-        Text(
-          "Humidity",
-          style: TextStyle(color: Colors.black),
-        ),
-        Icon(
-          Icons.water_drop,
-          color: Colors.blue,
-          size: 30,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            "${currentWeather.humidity}%",
-            style: TextStyle(color: Colors.black),
-          ),
-        ),
-      ],
-    ),
-  );
+  return createIndexCard("${currentWeather.humidity}%", "Humidity", Icons.water_drop, Colors.indigo);
 }
 
 Card createWind(WeatherData currentWeather) {
-  return Card(
-    color: Colors.white,
-    child: Column(
-      children: [
-        Text(
-          "Wind",
-          style: TextStyle(color: Colors.black),
-        ),
-        Icon(
-          Icons.air,
-          color: Colors.lightBlueAccent,
-          size: 30,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: convertSpeedUnits(
-            speed: currentWeather.windSpeed,
-            textStyle: TextStyle(color: Colors.black),
-          ),
-        ),
-      ],
-    ),
-  );
+  return createIndexCard(metersSecondToMph(currentWeather.windSpeed), "Wind", Icons.air, Colors.lightBlueAccent);
 }
 
 Card createUVIndex(WeatherData currentWeather) {
+  return createIndexCard(currentWeather.uvIndex, "UV Index", Icons.sunny, Colors.deepPurple);
+}
+
+Card createIndexCard(dynamic data, String text, IconData icon, Color iconColor) {
   return Card(
     color: Colors.white,
     child: Column(
       children: [
         Text(
-          "UV Index",
+          text,
           style: TextStyle(color: Colors.black),
         ),
         Icon(
-          Icons.brightness_7_outlined,
-          color: Colors.deepPurpleAccent,
+          icon,
+          color: iconColor,
           size: 30,
         ),
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(6.0),
           child: Text(
-            "${currentWeather.uvIndex}",
+            "$data",
             style: TextStyle(color: Colors.black),
           ),
         ),

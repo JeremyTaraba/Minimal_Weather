@@ -29,13 +29,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     bottomWeatherList = createBottomWeatherList(context, currentWeather);
 
-    return WillPopScope(
-      onWillPop: () => Future.value(false),
+    return PopScope(
+      canPop: false,
       child: Stack(children: [
         Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage("images/clear1.png"),
+              image: AssetImage("images/clear/day/3.jpg"),
               fit: BoxFit.cover,
             ),
           ),

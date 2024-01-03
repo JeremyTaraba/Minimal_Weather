@@ -19,13 +19,12 @@ class LocationAppBar extends StatefulWidget implements PreferredSizeWidget {
 class _LocationAppBarState extends State<LocationAppBar> {
   TextEditingController textController = TextEditingController();
   String originalName = "";
-  SuggestionsController<City> suggestionsController = SuggestionsController<City>();
 
   @override
   void initState() {
     super.initState();
-    textController.text = widget.currentWeather.cityName;
     originalName = widget.currentWeather.cityName;
+    textController.text = originalName;
   }
 
   @override
@@ -44,40 +43,39 @@ class _LocationAppBarState extends State<LocationAppBar> {
                 borderRadius: BorderRadius.all(Radius.circular(30)),
               ),
               child: TypeAheadField<City>(
+                controller: textController,
                 suggestionsCallback: allCities,
-                suggestionsController: suggestionsController,
                 builder: (context, textController, focusNode) {
                   return TextField(
+                    textCapitalization: TextCapitalization.words,
+                    controller: textController,
+                    focusNode: focusNode,
                     onTapOutside: (downEvent) {
                       FocusManager.instance.primaryFocus?.unfocus();
                       setState(() {
                         textController.text = originalName;
                       });
                     },
-                    // onSubmitted: (value) {
-                    //   setState(() {
-                    //     textController.text = value.toTitleCase().trim();
-                    //     originalName = value.toTitleCase().trim();
-                    //     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                    //       return loadingNewCity(cityName: textController.text);
-                    //     }));
-                    //   });
-                    // },
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
                       prefixIcon: Icon(
                         Icons.location_on_outlined,
                         color: Colors.white,
                       ),
                     ),
-                    controller: textController,
                     style: kCityLocationStyle,
                     maxLines: 1,
                   );
                 },
-                onSelected: (Object? value) {
+                decorationBuilder: (context, child) => Material(
+                  type: MaterialType.card,
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(30),
+                  child: child,
+                ),
+                onSelected: (City value) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                    return loadingNewCity(cityName: value.toString());
+                    return loadingNewCity(lat: value.lat, long: value.long);
                   }));
                 },
                 itemBuilder: (context, City) => ListTile(
@@ -91,33 +89,6 @@ class _LocationAppBarState extends State<LocationAppBar> {
                       : Text('\$${City.country}'),
                 ),
               ),
-              // child: TextField(
-              //   onTapOutside: (downEvent) {
-              //     FocusManager.instance.primaryFocus?.unfocus();
-              //     setState(() {
-              //       cityName.text = originalName;
-              //     });
-              //   },
-              //   onSubmitted: (value) {
-              //     setState(() {
-              //       cityName.text = value.toTitleCase().trim();
-              //       originalName = value.toTitleCase().trim();
-              //       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-              //         return loadingNewCity(cityName: cityName.text);
-              //       }));
-              //     });
-              //   },
-              //   decoration: InputDecoration(
-              //     border: InputBorder.none,
-              //     prefixIcon: Icon(
-              //       Icons.location_on_outlined,
-              //       color: Colors.white,
-              //     ),
-              //   ),
-              //   controller: cityName,
-              //   style: kCityLocationStyle,
-              //   maxLines: 1,
-              // ),
             ),
           ],
         ),

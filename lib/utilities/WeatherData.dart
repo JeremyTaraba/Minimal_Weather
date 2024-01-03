@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:klimate/services/global_variables.dart';
 
 import '../services/weather.dart';
-import 'helper_functions.dart';
 
 class WeatherData {
   late WeatherModel weather;

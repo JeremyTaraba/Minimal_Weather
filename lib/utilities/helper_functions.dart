@@ -122,28 +122,6 @@ String metersSecondToMph(double mph) {
   return "${(mph).toStringAsFixed(2)} m/s";
 }
 
-class convertSpeedUnits extends StatefulWidget {
-  const convertSpeedUnits({super.key, required this.speed, required this.textStyle});
-  final speed;
-  final TextStyle textStyle;
-  @override
-  State<convertSpeedUnits> createState() => _convertSpeedUnitsState();
-}
-
-class _convertSpeedUnitsState extends State<convertSpeedUnits> {
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-        valueListenable: global_FahrenheitUnits,
-        builder: (BuildContext context, int value, Widget? child) {
-          return Text(
-            metersSecondToMph(widget.speed),
-            style: widget.textStyle,
-          );
-        });
-  }
-}
-
 class convertTempUnits extends StatefulWidget {
   const convertTempUnits({super.key, required this.temp, required this.textStyle});
   final temp;
