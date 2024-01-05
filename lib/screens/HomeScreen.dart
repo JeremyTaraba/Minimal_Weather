@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage("images/clear/day/3.jpg"),
+              image: AssetImage("images/clear/day/test5.jpg"), //rid of: test3, test4, make day & night complement each other
               fit: BoxFit.cover,
             ),
           ),
@@ -66,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Column(
                       children: [
-                        Flexible(flex: 1, child: Container()),
                         Flexible(
                           flex: 6,
                           child: Row(
