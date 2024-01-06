@@ -4,10 +4,9 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:klimate/services/global_variables.dart';
 
-import '../services/weather.dart';
+import '../services/fetchWeather.dart';
 
 class WeatherData {
-  late WeatherModel weather;
   late DateTime writeTime;
   double temperature = 0;
   int condition = 0;
@@ -94,7 +93,7 @@ class WeatherData {
     } else if (condition == 800 || condition == 801) {
       // clear and mostly clear
       if (day) {
-        length = random.nextInt(10) + 1;
+        length = random.nextInt(7) + 1;
         return AssetImage("images/clear/day/$length.jpg");
       } else {
         if (condition == 801) {

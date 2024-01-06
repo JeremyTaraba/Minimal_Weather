@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../services/global_variables.dart';
-import '../services/weather.dart';
+import '../services/fetchWeather.dart';
 import '../utilities/WeatherData.dart';
 import '../utilities/helper_functions.dart';
 import 'HomeScreen.dart';

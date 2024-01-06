@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:klimate/screens/HomeScreen.dart';
 import 'package:klimate/services/global_variables.dart';
-import 'package:klimate/services/weather.dart';
+import 'package:klimate/services/fetchWeather.dart';
 import 'package:klimate/utilities/WeatherData.dart';
 import 'package:permission_handler/permission_handler.dart';
 

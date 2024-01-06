@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage("images/clear/day/test5.jpg"), //rid of: test3, test4, make day & night complement each other
+              image: currentWeather.background, //rid of: test3, test4, make day & night complement each other
               fit: BoxFit.cover,
             ),
           ),
