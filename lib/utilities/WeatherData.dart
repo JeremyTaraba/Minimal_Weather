@@ -8,7 +8,7 @@ import '../services/fetchWeather.dart';
 
 class WeatherData {
   late DateTime writeTime;
-  double temperature = 0;
+  num temperature = 0;
   int condition = 0;
   String cityName = "";
   String description = "";

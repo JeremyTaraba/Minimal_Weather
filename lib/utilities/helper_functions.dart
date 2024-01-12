@@ -98,17 +98,17 @@ getTemperatureUnits() async {
   return 0;
 }
 
-double kelvinToCelsius(double temp) {
+double kelvinToCelsius(num temp) {
   double num = double.parse((temp - 273.15).toStringAsFixed(1));
   return num;
 }
 
-int kelvinToFahrenheit(double temp) {
+int kelvinToFahrenheit(num temp) {
   double num = double.parse((((temp - 273.15) * 9 / 5) + 32).toStringAsFixed(0));
   return num.toInt();
 }
 
-num convertUnitsIfNeedBe(double temp) {
+num convertUnitsIfNeedBe(num temp) {
   if (global_FahrenheitUnits.value == 1) {
     return kelvinToFahrenheit(temp);
   }
