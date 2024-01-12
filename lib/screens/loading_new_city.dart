@@ -40,9 +40,9 @@ class _loadingNewCityState extends State<loadingNewCity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green,
-      body: Center(
-        child: SpinKitCubeGrid(
+      backgroundColor: Colors.green[300],
+      body: const Center(
+        child: SpinKitCircle(
           color: Colors.white,
           size: 100,
         ),
