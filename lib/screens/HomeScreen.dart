@@ -1,3 +1,4 @@
+import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/DraggableScrollable.dart';
@@ -66,6 +67,48 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Column(
                       children: [
+                        ExpandableNotifier(
+                          child: Card(
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
+                              children: <Widget>[
+                                SizedBox(
+                                  height: 50,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange,
+                                      shape: BoxShape.rectangle,
+                                    ),
+                                  ),
+                                ),
+                                ScrollOnExpand(
+                                  child: ExpandablePanel(
+                                    theme: ExpandableThemeData(
+                                      hasIcon: false,
+                                      tapBodyToExpand: true,
+                                      tapBodyToCollapse: true,
+                                      iconPadding: EdgeInsets.zero,
+                                      alignment: Alignment.topLeft,
+                                    ),
+                                    header: Text("expand test"),
+                                    collapsed: Text(""),
+                                    expanded: Text("hello bye"),
+                                    builder: (_, collapsed, expanded) {
+                                      return Padding(
+                                        padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                                        child: Expandable(
+                                          collapsed: collapsed,
+                                          expanded: expanded,
+                                          theme: const ExpandableThemeData(crossFadePoint: 0),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                         Flexible(
                           flex: 6,
                           child: Row(

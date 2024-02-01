@@ -1,3 +1,4 @@
+import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/helper_functions.dart';
@@ -53,25 +54,100 @@ List createWeatherTiles() {
   return weatherTiles;
 }
 
+List createWeatherTilesFiveDays() {
+  List weatherTiles = [];
+  var hourly = global_HourlyWeatherData["hourly"];
+
+  for (int i = 0; i < 24; i++) {
+    int epochTime = hourly[i]["dt"];
+    var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
+
+    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["icon"], hourly[i]["temp"], hourly[i]["weather"][0]["description"],
+        hourly[i]["weather"][0]["main"], hourly[i]["pop"]);
+    weatherTiles.add(temp._generateTile(i));
+  }
+  return weatherTiles;
+}
+
+Card scrollableWeatherFiveDays() {
+  List hourlyWeatherTile = createWeatherTiles();
+  return Card(
+    color: Colors.white,
+    //shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
+    child: SizedBox(
+      height: 100, //MediaQuery.of(context).size.width / 3.3,
+      child: ListView.builder(
+        physics: const ClampingScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: hourlyWeatherTile.length,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (BuildContext context, int index) {
+          return Padding(
+            child: hourlyWeatherTile[index],
+            padding: EdgeInsets.all(0),
+          );
+        },
+      ),
+    ),
+  );
+}
+
 class WeatherBanner {
   int weekDay; //1 = Monday, 7 = Sunday
   String icon = "";
   num minTemp = 0;
   num maxTemp = 0;
   String description = "";
+  int index = 6;
 
-  WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description);
+  WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description, this.index);
 
   Row _generateBanner() {
+    ExpandableController controller = ExpandableController();
     return Row(
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text(
-            getDayFromWeekday(weekDay),
-            style: TextStyle(color: Colors.black),
+          child: GestureDetector(
+            onTap: () {
+              controller.expanded = !controller.expanded;
+            },
+            child: Text(
+              getDayFromWeekday(weekDay),
+              style: TextStyle(color: Colors.black),
+            ),
           ),
         ),
+        if (index < 5)
+          ExpandableNotifier(
+            controller: controller,
+            child: ScrollOnExpand(
+              child: ExpandablePanel(
+                theme: ExpandableThemeData(
+                  hasIcon: false,
+                  tapBodyToExpand: true,
+                  tapBodyToCollapse: true,
+                ),
+                collapsed: Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.black,
+                ),
+                expanded: scrollableWeatherFiveDays(),
+                builder: (_, collapsed, expanded) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: 10,
+                    ),
+                    child: Expandable(
+                      collapsed: collapsed,
+                      expanded: expanded,
+                      theme: const ExpandableThemeData(crossFadePoint: 0),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
         Flexible(child: Container()),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
@@ -115,6 +191,7 @@ List createWeatherBanners() {
       daily[i]["temp"]["min"],
       daily[i]["temp"]["max"],
       daily[i]["weather"][0]["description"],
+      i,
     );
     weatherBanners.add(temp._generateBanner());
   }
