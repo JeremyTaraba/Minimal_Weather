@@ -82,6 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 ScrollOnExpand(
+                                  ///use animated container instead
                                   child: ExpandablePanel(
                                     theme: ExpandableThemeData(
                                       hasIcon: false,
@@ -90,7 +91,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       iconPadding: EdgeInsets.zero,
                                       alignment: Alignment.topLeft,
                                     ),
-                                    header: Text("expand test"),
+                                    header: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text("expand test"),
+                                    ),
                                     collapsed: Text(""),
                                     expanded: Text("hello bye"),
                                     builder: (_, collapsed, expanded) {

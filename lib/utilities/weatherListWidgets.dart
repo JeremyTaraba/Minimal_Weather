@@ -102,77 +102,79 @@ class WeatherBanner {
 
   WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description, this.index);
 
-  Row _generateBanner() {
+  Widget _generateBanner() {
     ExpandableController controller = ExpandableController();
-    return Row(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: GestureDetector(
-            onTap: () {
-              controller.expanded = !controller.expanded;
-            },
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        controller.expanded = !controller.expanded;
+      },
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
               getDayFromWeekday(weekDay),
               style: TextStyle(color: Colors.black),
             ),
           ),
-        ),
-        if (index < 5)
-          ExpandableNotifier(
-            controller: controller,
-            child: ScrollOnExpand(
-              child: ExpandablePanel(
-                theme: ExpandableThemeData(
-                  hasIcon: false,
-                  tapBodyToExpand: true,
-                  tapBodyToCollapse: true,
+          if (index < 5)
+            ExpandableNotifier(
+              controller: controller,
+              child: ScrollOnExpand(
+                child: ExpandablePanel(
+                  theme: ExpandableThemeData(
+                    hasIcon: false,
+                    tapBodyToExpand: true,
+                    tapBodyToCollapse: true,
+                  ),
+                  header: Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.black,
+                  ),
+                  collapsed: SizedBox(),
+                  expanded: scrollableWeatherFiveDays(),
+                  builder: (_, collapsed, expanded) {
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        right: 10,
+                      ),
+                      child: Expandable(
+                        collapsed: collapsed,
+                        expanded: expanded,
+                        theme: const ExpandableThemeData(crossFadePoint: 0),
+                      ),
+                    );
+                  },
                 ),
-                collapsed: Icon(
-                  Icons.arrow_drop_down,
-                  color: Colors.black,
-                ),
-                expanded: scrollableWeatherFiveDays(),
-                builder: (_, collapsed, expanded) {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      right: 10,
-                    ),
-                    child: Expandable(
-                      collapsed: collapsed,
-                      expanded: expanded,
-                      theme: const ExpandableThemeData(crossFadePoint: 0),
-                    ),
-                  );
-                },
               ),
             ),
+          Flexible(child: Container()),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
+            child: getWeatherIcon(icon, 40, description),
           ),
-        Flexible(child: Container()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
-          child: getWeatherIcon(icon, 40, description),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Row(
-            children: [
-              convertTempUnits(
-                temp: maxTemp,
-                textStyle: TextStyle(color: Colors.black),
-              ),
-              Text(
-                "/",
-                style: TextStyle(color: Colors.black),
-              ),
-              convertTempUnits(
-                temp: minTemp,
-                textStyle: TextStyle(color: Colors.black),
-              ),
-            ],
-          ),
-        )
-      ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Row(
+              children: [
+                convertTempUnits(
+                  temp: maxTemp,
+                  textStyle: TextStyle(color: Colors.black),
+                ),
+                Text(
+                  "/",
+                  style: TextStyle(color: Colors.black),
+                ),
+                convertTempUnits(
+                  temp: minTemp,
+                  textStyle: TextStyle(color: Colors.black),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 }
