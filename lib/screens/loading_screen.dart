@@ -5,6 +5,7 @@ import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/services/fetchWeather.dart';
 import 'package:klimate/utilities/WeatherData.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:klimate/services/location.dart';
 
 import '../utilities/helper_functions.dart';
 
@@ -75,8 +76,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
     // } else {
     //   // we can make a new API request and write to file
     // }
-    global_CurrentWeatherData = await getCurrentLocationWeather(); //calls the current weather api
-    global_HourlyWeatherData = await getHourlyLocationWeather(); //calls the hourly weather api
+
+    Location currentLocation = Location();
+    await currentLocation.getCurrentLocation();
+    global_CurrentWeatherData = await getCurrentLocationWeather(currentLocation); //calls the current weather api
+    global_HourlyWeatherData = await getHourlyLocationWeather(currentLocation); //calls the hourly weather api
+    global_ForecastWeatherData = await getFiveDayForecastWithLatLon(currentLocation); //calls the forecast weather api
 
     //want to store this information from both apis into 1 global weather object
     WeatherData currentWeatherData = WeatherData();

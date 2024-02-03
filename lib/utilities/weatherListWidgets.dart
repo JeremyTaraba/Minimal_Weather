@@ -54,40 +54,56 @@ List createWeatherTiles() {
   return weatherTiles;
 }
 
-List createWeatherTilesFiveDays() {
+List createWeatherTilesFiveDays(List forecastList) {
   List weatherTiles = [];
-  var hourly = global_HourlyWeatherData["hourly"];
+  Widget blank = SizedBox(
+    width: 10,
+  );
 
-  for (int i = 0; i < 24; i++) {
-    int epochTime = hourly[i]["dt"];
+  for (int i = 0; i < forecastList.length; i++) {
+    int epochTime = forecastList[i]["dt"];
     var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
 
-    WeatherTile temp = WeatherTile(date.hour, hourly[i]["weather"][0]["icon"], hourly[i]["temp"], hourly[i]["weather"][0]["description"],
-        hourly[i]["weather"][0]["main"], hourly[i]["pop"]);
+    WeatherTile temp = WeatherTile(date.hour, forecastList[i]["weather"][0]["icon"], forecastList[i]["main"]["temp"],
+        forecastList[i]["weather"][0]["description"], forecastList[i]["weather"][0]["main"], forecastList[i]["pop"]);
     weatherTiles.add(temp._generateTile(i));
+    weatherTiles.add(blank);
   }
   return weatherTiles;
 }
 
-Card scrollableWeatherFiveDays() {
-  List hourlyWeatherTile = createWeatherTiles();
-  return Card(
-    color: Colors.white,
-    //shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
-    child: SizedBox(
-      height: 100, //MediaQuery.of(context).size.width / 3.3,
-      child: ListView.builder(
-        physics: const ClampingScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: hourlyWeatherTile.length,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (BuildContext context, int index) {
-          return Padding(
-            child: hourlyWeatherTile[index],
-            padding: EdgeInsets.all(0),
-          );
-        },
-      ),
+Widget scrollableWeatherFiveDays(int index) {
+  //index tells us which day it is. 0 - 4, 0 being today and 1 being the next day
+  //can use this to filter through the list of forecasts for the appropriate day
+  // create a list to send to weatherTilesFiveDays which is just the time we need
+
+  var now = DateTime.now();
+  now = now.add(Duration(days: index));
+  List forecastList = [];
+
+  List forecastWeather = global_ForecastWeatherData["list"];
+
+  for (int i = 0; i < forecastWeather.length; i++) {
+    if (forecastWeather[i]["dt_txt"].split(' ')[0] == now.toString().split(' ')[0]) {
+      print("got it");
+      forecastList.add(forecastWeather[i]);
+    }
+  }
+
+  List hourlyWeatherTile = createWeatherTilesFiveDays(forecastList);
+  return SizedBox(
+    height: 100, //MediaQuery.of(context).size.width / 3.3,
+    child: ListView.builder(
+      physics: const ClampingScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: hourlyWeatherTile.length,
+      scrollDirection: Axis.horizontal,
+      itemBuilder: (BuildContext context, int index) {
+        return Padding(
+          child: hourlyWeatherTile[index],
+          padding: EdgeInsets.all(0),
+        );
+      },
     ),
   );
 }
@@ -103,13 +119,65 @@ class WeatherBanner {
   WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description, this.index);
 
   Widget _generateBanner() {
-    ExpandableController controller = ExpandableController();
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () {
-        controller.expanded = !controller.expanded;
-      },
-      child: Row(
+    if (0 < index && index < 6) {
+      ExpandableController controller = ExpandableController();
+      return ExpandableNotifier(
+        controller: controller,
+        child: ScrollOnExpand(
+          child: ExpandablePanel(
+            theme: ExpandableThemeData(
+              tapBodyToCollapse: true,
+              iconPlacement: ExpandablePanelIconPlacement.right,
+            ),
+            header: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Text(
+                    getDayFromWeekday(weekDay),
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+                Flexible(child: Container()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
+                  child: getWeatherIcon(icon, 40, description),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    children: [
+                      convertTempUnits(
+                        temp: maxTemp,
+                        textStyle: TextStyle(color: Colors.black),
+                      ),
+                      Text(
+                        "/",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      convertTempUnits(
+                        temp: minTemp,
+                        textStyle: TextStyle(color: Colors.black),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+            collapsed: SizedBox(),
+            expanded: scrollableWeatherFiveDays(index),
+            builder: (_, collapsed, expanded) {
+              return Expandable(
+                collapsed: collapsed,
+                expanded: expanded,
+                theme: const ExpandableThemeData(crossFadePoint: 0),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      return Row(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -118,37 +186,6 @@ class WeatherBanner {
               style: TextStyle(color: Colors.black),
             ),
           ),
-          if (index < 5)
-            ExpandableNotifier(
-              controller: controller,
-              child: ScrollOnExpand(
-                child: ExpandablePanel(
-                  theme: ExpandableThemeData(
-                    hasIcon: false,
-                    tapBodyToExpand: true,
-                    tapBodyToCollapse: true,
-                  ),
-                  header: Icon(
-                    Icons.arrow_drop_down,
-                    color: Colors.black,
-                  ),
-                  collapsed: SizedBox(),
-                  expanded: scrollableWeatherFiveDays(),
-                  builder: (_, collapsed, expanded) {
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        right: 10,
-                      ),
-                      child: Expandable(
-                        collapsed: collapsed,
-                        expanded: expanded,
-                        theme: const ExpandableThemeData(crossFadePoint: 0),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
           Flexible(child: Container()),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
@@ -170,12 +207,15 @@ class WeatherBanner {
                   temp: minTemp,
                   textStyle: TextStyle(color: Colors.black),
                 ),
+                SizedBox(
+                  width: 40,
+                ),
               ],
             ),
           )
         ],
-      ),
-    );
+      );
+    }
   }
 }
 
