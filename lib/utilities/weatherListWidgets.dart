@@ -84,8 +84,9 @@ Widget scrollableWeatherFiveDays(int index) {
   List forecastWeather = global_ForecastWeatherData["list"];
 
   for (int i = 0; i < forecastWeather.length; i++) {
-    if (forecastWeather[i]["dt_txt"].split(' ')[0] == now.toString().split(' ')[0]) {
-      print("got it");
+    DateTime localTime =
+        DateTime.parse(forecastWeather[i]["dt_txt"] + " Z").toLocal(); // Z is for utc which is needs to be in for converting to local
+    if (localTime.toString().split(' ')[0] == now.toString().split(' ')[0]) {
       forecastList.add(forecastWeather[i]);
     }
   }
@@ -119,7 +120,7 @@ class WeatherBanner {
   WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description, this.index);
 
   Widget _generateBanner() {
-    if (0 < index && index < 6) {
+    if (0 < index && index < 5) {
       ExpandableController controller = ExpandableController();
       return ExpandableNotifier(
         controller: controller,
