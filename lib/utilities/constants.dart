@@ -6,6 +6,12 @@ const TextStyle kTempStyle = TextStyle(
   fontFamily: 'Hedvig',
 );
 
+const TextStyle kErrorTextStyle = TextStyle(
+  fontSize: 24,
+  fontFamily: 'Hedvig',
+  color: Colors.black,
+);
+
 const TextStyle kCityLocationStyle = TextStyle(
   fontSize: 24,
   fontFamily: 'Alice',

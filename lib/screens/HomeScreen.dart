@@ -1,4 +1,3 @@
-import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/DraggableScrollable.dart';
@@ -7,6 +6,14 @@ import 'package:klimate/utilities/helper_functions.dart';
 import '../utilities/GradientText.dart';
 import '../utilities/constants.dart';
 import 'package:klimate/utilities/WeatherData.dart';
+
+// TODO: Check what happens if run out of requests and fix it
+// TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen
+// TODO: Add notification for weather updates (government thingy) and for tomorrows weather
+// TODO: Add localization for other languages and be able to choose language
+// TODO: Add a way to refresh weather and also go back to original location when searching
+// TODO: Limit to 1 refresh per hour
+// TODO: Before going into production MUST encrypt api key / api call then refresh key before final upload
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, this.locationWeather});

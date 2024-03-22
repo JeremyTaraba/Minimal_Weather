@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:klimate/screens/HomeScreen.dart';
+import 'package:klimate/screens/error_screen.dart';
 import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/services/fetchWeather.dart';
 import 'package:klimate/utilities/WeatherData.dart';
@@ -83,15 +84,22 @@ class _LoadingScreenState extends State<LoadingScreen> {
     global_HourlyWeatherData = await getHourlyLocationWeather(currentLocation); //calls the hourly weather api
     global_ForecastWeatherData = await getFiveDayForecastWithLatLon(currentLocation); //calls the forecast weather api
 
-    //want to store this information from both apis into 1 global weather object
-    WeatherData currentWeatherData = WeatherData();
-    global_FahrenheitUnits.value = await getTemperatureUnits();
+    if (global_gotWeatherSuccessfully) {
+      print("there was an error");
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return ErrorScreen();
+      }));
+    } else {
+      //want to store this information from both apis into 1 global weather object
+      WeatherData currentWeatherData = WeatherData();
+      global_FahrenheitUnits.value = await getTemperatureUnits();
 
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return HomeScreen(
-        locationWeather: currentWeatherData,
-      );
-    }));
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return HomeScreen(
+          locationWeather: currentWeatherData,
+        );
+      }));
+    }
   }
 
   @override
