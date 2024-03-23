@@ -7,8 +7,7 @@ import '../utilities/GradientText.dart';
 import '../utilities/constants.dart';
 import 'package:klimate/utilities/WeatherData.dart';
 
-// TODO: Check what happens if run out of requests and fix it
-// TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen
+// TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen may need to add incentive like golden status or something, problem is how to check if user has subscribed or not when have no logins? use google play login?
 // TODO: Add notification for weather updates (government thingy) and for tomorrows weather
 // TODO: Add localization for other languages and be able to choose language
 // TODO: Add a way to refresh weather and also go back to original location when searching

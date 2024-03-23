@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:klimate/screens/loading_screen.dart';
 import 'package:klimate/services/global_variables.dart';
@@ -26,6 +27,8 @@ class _ErrorScreenState extends State<ErrorScreen> {
       print('Could not launch $url');
     }
   }
+
+  var reportButtonClicked = false;
 
   static const snackBar = SnackBar(
     content: Text('Report Sent'),
@@ -118,9 +121,19 @@ class _ErrorScreenState extends State<ErrorScreen> {
                             children: [
                               TextButton(
                                 onPressed: () {
-                                  sleep(Duration(milliseconds: 400));
-                                  print(global_errorMessage);
-                                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                  if (!reportButtonClicked) {
+                                    try {
+                                      throw Exception(global_errorMessage);
+                                    } catch (e) {
+                                      print(e);
+                                      FirebaseCrashlytics.instance.recordError(e, StackTrace.current);
+                                    }
+
+                                    setState(() {
+                                      reportButtonClicked = true;
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                  }
                                 },
                                 child: const Text(
                                   "\n Send Error Report",
