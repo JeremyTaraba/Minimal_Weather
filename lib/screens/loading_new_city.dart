@@ -30,6 +30,7 @@ class _loadingNewCityState extends State<loadingNewCity> {
     //want to store this information from both apis into 1 global weather object
     WeatherData currentWeatherData = WeatherData();
     global_FahrenheitUnits.value = await getTemperatureUnits();
+    await sendLocationData("${currentWeatherData.cityName}: manual lookup");
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
       return HomeScreen(
         locationWeather: currentWeatherData,

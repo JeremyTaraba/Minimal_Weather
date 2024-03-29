@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:klimate/screens/loading_screen.dart';
@@ -33,6 +31,17 @@ class _ErrorScreenState extends State<ErrorScreen> {
   static const snackBar = SnackBar(
     content: Text('Report Sent'),
   );
+
+  @override
+  void initState() {
+    super.initState();
+    try {
+      throw Exception(global_errorMessage);
+    } catch (e) {
+      print(e);
+      FirebaseCrashlytics.instance.recordError("recordError: \n $e", StackTrace.current);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +89,7 @@ class _ErrorScreenState extends State<ErrorScreen> {
                           ),
                           Text(
                             "Froggy Weather is experiencing more traffic than it can handle.  "
-                            "We are fixing it. Thank you for your understanding.  "
+                            "We are working on fixing it. \n \n"
                             "If you have suggestions for making the app better send an email to:",
                             style: kErrorTextStyle,
                             textAlign: TextAlign.center,
@@ -98,24 +107,6 @@ class _ErrorScreenState extends State<ErrorScreen> {
                               ),
                             ),
                           ),
-                          Text(
-                            "\nIf you're enjoying our app and would like to support us in developing it",
-                            style: kErrorTextStyle,
-                            textAlign: TextAlign.center,
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              print("Pressed");
-                            },
-                            child: Text(
-                              "Click here",
-                              style: TextStyle(
-                                color: Colors.green[600],
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -126,7 +117,7 @@ class _ErrorScreenState extends State<ErrorScreen> {
                                       throw Exception(global_errorMessage);
                                     } catch (e) {
                                       print(e);
-                                      FirebaseCrashlytics.instance.recordError(e, StackTrace.current);
+                                      FirebaseCrashlytics.instance.recordError("Manually pressed Send Error Button: \n $e", StackTrace.current);
                                     }
 
                                     setState(() {

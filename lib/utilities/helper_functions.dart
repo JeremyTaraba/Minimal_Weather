@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import '../services/global_variables.dart';
@@ -177,4 +178,10 @@ Icon getWeatherIcon(String iconNumber, double size, String description) {
     default:
       return Icon(WeatherIcons.sun, size: size, color: Colors.orange[600]);
   }
+}
+
+Future<void> sendLocationData(String cityName) async {
+  final user = <String, String>{DateTime.now().toString(): cityName};
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  firestore.collection("location").doc(global_userID).set(user, SetOptions(merge: true));
 }

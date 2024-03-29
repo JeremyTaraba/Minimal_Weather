@@ -12,6 +12,7 @@ import 'package:klimate/utilities/WeatherData.dart';
 // TODO: Add localization for other languages and be able to choose language
 // TODO: Add a way to refresh weather and also go back to original location when searching
 // TODO: Limit to 1 refresh per hour
+// TODO: Time is not local time, can add local time somewhere or change all the times to local
 // TODO: Before going into production MUST encrypt api key / api call then refresh key before final upload
 
 class HomeScreen extends StatefulWidget {

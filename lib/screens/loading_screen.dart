@@ -7,7 +7,7 @@ import 'package:klimate/services/fetchWeather.dart';
 import 'package:klimate/utilities/WeatherData.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:klimate/services/location.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '../utilities/helper_functions.dart';
 
 class LoadingScreen extends StatefulWidget {
@@ -58,33 +58,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
   }
 
   void getLocationData() async {
-    // check to see if we need to make another API response or not by reading local weather file
-    // String content =
-    //     await readWeatherData(); //TODO: Remove this and make it so you can check the 1 global object which is the only thing saved in secure storage/ shared preferences
-
-    //if there is data in the file
-    // if (content != "Error") {
-    //   int i = 0;
-    //   String lastWrite = "";
-    // while (content[i] != "\n" || i < content.length) {
-    //   lastWrite += content[i];
-    //   i++;
-    // }
-    //DateTime writeTime = DateTime.parse(lastWrite);
-    //check to see if writeTime is larger than 1 hour
-    // if yes, can make new API request and write to file
-    // if no, weatherDataOld = read from file
-    // } else {
-    //   // we can make a new API request and write to file
-    // }
-
     Location currentLocation = Location();
     await currentLocation.getCurrentLocation();
     global_CurrentWeatherData = await getCurrentLocationWeather(currentLocation); //calls the current weather api
     global_HourlyWeatherData = await getHourlyLocationWeather(currentLocation); //calls the hourly weather api
     global_ForecastWeatherData = await getFiveDayForecastWithLatLon(currentLocation); //calls the forecast weather api
 
-    if (global_gotWeatherSuccessfully) {
+    if (!global_gotWeatherSuccessfully) {
       print("there was an error");
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return ErrorScreen();
@@ -93,6 +73,22 @@ class _LoadingScreenState extends State<LoadingScreen> {
       //want to store this information from both apis into 1 global weather object
       WeatherData currentWeatherData = WeatherData();
       global_FahrenheitUnits.value = await getTemperatureUnits();
+
+      //send location to firebase for analytics
+      try {
+        final userCredential = await FirebaseAuth.instance.signInAnonymously();
+        global_userID = userCredential.user?.uid;
+        print("Signed in with temporary account.");
+      } on FirebaseAuthException catch (e) {
+        switch (e.code) {
+          case "operation-not-allowed":
+            print("Anonymous auth hasn't been enabled for this project.");
+            break;
+          default:
+            print("Unknown error.");
+        }
+      }
+      await sendLocationData(currentWeatherData.cityName);
 
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return HomeScreen(
