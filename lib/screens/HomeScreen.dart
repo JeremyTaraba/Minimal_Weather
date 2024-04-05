@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/DraggableScrollable.dart';
@@ -13,6 +14,7 @@ import 'package:klimate/utilities/WeatherData.dart';
 // TODO: Add a way to refresh weather and also go back to original location when searching
 // TODO: Limit to 1 refresh per hour
 // TODO: Time is not local time, can add local time somewhere or change all the times to local
+// TODO: Something is wrong with manual lookup where it changes city name
 // TODO: Before going into production MUST encrypt api key / api call then refresh key before final upload
 
 class HomeScreen extends StatefulWidget {
@@ -28,6 +30,16 @@ class _HomeScreenState extends State<HomeScreen> {
   WeatherData currentWeather = WeatherData();
   List bottomWeatherList = [];
 
+  Future<void> testWeather() async {
+    print("calling callable");
+    HttpsCallable weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
+    final response = await weatherCloudFunction.call(<String, dynamic>{
+      'lat': 33.44,
+      'long': -94.04,
+    });
+    print(response.data);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +48,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     bottomWeatherList = createBottomWeatherList(context, currentWeather);
-
     return PopScope(
       canPop: false,
       child: Stack(children: [
@@ -90,6 +101,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ],
                           ),
+                        ),
+                        FloatingActionButton(
+                          onPressed: () {
+                            testWeather();
+                            print("testing weather");
+                          },
+                          child: Text("Test"),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 20.0),

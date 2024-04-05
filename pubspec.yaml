@@ -50,6 +50,7 @@ dependencies:
   firebase_analytics: ^10.8.9
   cloud_firestore: ^4.15.10
   firebase_auth: ^4.18.0
+  cloud_functions: ^4.7.0
 
 
 
