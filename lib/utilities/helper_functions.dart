@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import '../services/global_variables.dart';
@@ -184,4 +185,14 @@ Future<void> sendLocationData(String cityName) async {
   final user = <String, String>{DateTime.now().toString(): cityName};
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   firestore.collection("location").doc(global_userID).set(user, SetOptions(merge: true));
+}
+
+Future<void> CloudFunctionsGetWeather(double lat, double long) async {
+  print("calling callable");
+  HttpsCallable weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
+  final response = await weatherCloudFunction.call(<String, dynamic>{
+    'lat': lat,
+    'long': long,
+  });
+  print(response.data);
 }

@@ -75,7 +75,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
                 ),
                 onSelected: (City value) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                    return loadingNewCity(lat: value.lat, long: value.long);
+                    return loadingNewCity(lat: value.lat, long: value.long, cityName: textController.text);
                   }));
                 },
                 itemBuilder: (context, City) => ListTile(

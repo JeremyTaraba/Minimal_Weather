@@ -24,6 +24,8 @@ class WeatherData {
   String currentIconNumber = "";
   List<String> dailyIconNumber = [];
   List<String> hourlyIconNumber = [];
+  double long = 0.0;
+  double lat = 0.0;
 
   WeatherData() {
     // sets all the variables we need

@@ -13,14 +13,16 @@ import 'package:klimate/utilities/WeatherData.dart';
 // TODO: Add localization for other languages and be able to choose language
 // TODO: Add a way to refresh weather and also go back to original location when searching
 // TODO: Limit to 1 refresh per hour
+// TODO: Fix it so that changing system font size does not overflow any objects
+// TODO: make it so the weather list isn't constant size of 7 but gets size of list
 // TODO: Time is not local time, can add local time somewhere or change all the times to local
 // TODO: Something is wrong with manual lookup where it changes city name
 // TODO: Before going into production MUST encrypt api key / api call then refresh key before final upload
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.locationWeather});
+  const HomeScreen({super.key, required this.locationWeather});
 
-  final locationWeather;
+  final WeatherData locationWeather;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -33,11 +35,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> testWeather() async {
     print("calling callable");
     HttpsCallable weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
-    final response = await weatherCloudFunction.call(<String, dynamic>{
-      'lat': 33.44,
-      'long': -94.04,
-    });
-    print(response.data);
+    print("creating callable");
+    try {
+      final response = await weatherCloudFunction.call(<String, dynamic>{
+        'lat': widget.locationWeather.lat,
+        'long': widget.locationWeather.long,
+      });
+      print("after trying callable");
+      print(response.data);
+    } on FirebaseFunctionsException catch (e) {
+      // Do clever things with e
+      print(e);
+    } catch (e) {
+      // Do other things that might be thrown that I have overlooked
+      print(e);
+    }
   }
 
   @override
@@ -103,9 +115,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         FloatingActionButton(
-                          onPressed: () {
-                            testWeather();
-                            print("testing weather");
+                          onPressed: () async {
+                            await testWeather();
+                            print("finished calling cloud function");
                           },
                           child: Text("Test"),
                         ),

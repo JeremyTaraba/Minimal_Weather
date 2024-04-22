@@ -8,9 +8,10 @@ import '../utilities/helper_functions.dart';
 import 'HomeScreen.dart';
 
 class loadingNewCity extends StatefulWidget {
-  loadingNewCity({super.key, required this.lat, required this.long});
+  loadingNewCity({super.key, required this.lat, required this.long, required this.cityName});
   num lat;
   num long;
+  String cityName;
   @override
   State<loadingNewCity> createState() => _loadingNewCityState();
 }
@@ -29,6 +30,8 @@ class _loadingNewCityState extends State<loadingNewCity> {
 
     //want to store this information from both apis into 1 global weather object
     WeatherData currentWeatherData = WeatherData();
+    currentWeatherData.cityName = widget.cityName;
+    print(currentWeatherData.cityName);
     global_FahrenheitUnits.value = await getTemperatureUnits();
     await sendLocationData("${currentWeatherData.cityName}: manual lookup");
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {

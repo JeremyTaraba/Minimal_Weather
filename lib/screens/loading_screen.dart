@@ -64,6 +64,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
     global_HourlyWeatherData = await getHourlyLocationWeather(currentLocation); //calls the hourly weather api
     global_ForecastWeatherData = await getFiveDayForecastWithLatLon(currentLocation); //calls the forecast weather api
 
+    CloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude); // using cloud functions to get weather
+
     if (!global_gotWeatherSuccessfully) {
       print("there was an error");
       Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -88,6 +90,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
             print("Unknown error.");
         }
       }
+
       await sendLocationData(currentWeatherData.cityName);
 
       Navigator.push(context, MaterialPageRoute(builder: (context) {
