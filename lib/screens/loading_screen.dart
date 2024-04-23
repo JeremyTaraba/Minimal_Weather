@@ -9,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:klimate/services/location.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utilities/helper_functions.dart';
+import 'dart:convert';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({Key? key}) : super(key: key);
@@ -60,11 +61,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
   void getLocationData() async {
     Location currentLocation = Location();
     await currentLocation.getCurrentLocation();
-    global_CurrentWeatherData = await getCurrentLocationWeather(currentLocation); //calls the current weather api
-    global_HourlyWeatherData = await getHourlyLocationWeather(currentLocation); //calls the hourly weather api
-    global_ForecastWeatherData = await getFiveDayForecastWithLatLon(currentLocation); //calls the forecast weather api
+    // global_CurrentWeatherData = await getCurrentLocationWeather(currentLocation); //calls the current weather api
+    // global_HourlyWeatherData = await getHourlyLocationWeather(currentLocation); //calls the hourly weather api
+    // global_ForecastWeatherData = await getFiveDayForecastWithLatLon(currentLocation); //calls the forecast weather api
 
-    CloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude); // using cloud functions to get weather
+    var response = await CloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude); // using cloud functions to get weather
 
     if (!global_gotWeatherSuccessfully) {
       print("there was an error");
@@ -72,8 +73,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
         return ErrorScreen();
       }));
     } else {
-      //want to store this information from both apis into 1 global weather object
-      WeatherData currentWeatherData = WeatherData();
+      //want to store this information into 1 weather object
+      WeatherData weatherData = WeatherData();
+      weatherData.setWeatherData(response);
+
+      //updating temp units from saved settings
       global_FahrenheitUnits.value = await getTemperatureUnits();
 
       //send location to firebase for analytics
@@ -91,11 +95,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
         }
       }
 
-      await sendLocationData(currentWeatherData.cityName);
+      await sendLocationData(weatherData.cityName);
 
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return HomeScreen(
-          locationWeather: currentWeatherData,
+          locationWeather: weatherData,
         );
       }));
     }

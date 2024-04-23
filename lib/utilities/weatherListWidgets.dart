@@ -1,6 +1,5 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/helper_functions.dart';
 
 import 'WeatherData.dart';
@@ -20,28 +19,28 @@ class WeatherTile {
       children: [
         Text(
           getTimeWithAMPM(twentyFourHour, 0),
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
         ),
         Container(
           height: 20,
           child: Text(
             main == "Rain" ? "${(pop * 100).toInt()}%" : "",
-            style: TextStyle(color: Colors.blue),
+            style: const TextStyle(color: Colors.blue),
           ),
         ),
         getWeatherIcon(icon, 40, description),
         convertTempUnits(
           temp: temp,
-          textStyle: TextStyle(color: Colors.black),
+          textStyle: const TextStyle(color: Colors.black),
         ),
       ],
     );
   }
 }
 
-List createWeatherTiles() {
+List createWeatherTiles(WeatherData currentWeather) {
   List weatherTiles = [];
-  var hourly = global_HourlyWeatherData["hourly"];
+  var hourly = currentWeather.hourly;
 
   for (int i = 0; i < 24; i++) {
     int epochTime = hourly[i]["dt"];
@@ -56,7 +55,7 @@ List createWeatherTiles() {
 
 List createWeatherTilesFiveDays(List forecastList) {
   List weatherTiles = [];
-  Widget blank = SizedBox(
+  Widget blank = const SizedBox(
     width: 10,
   );
 
@@ -72,7 +71,7 @@ List createWeatherTilesFiveDays(List forecastList) {
   return weatherTiles;
 }
 
-Widget scrollableWeatherFiveDays(int index) {
+Widget scrollableWeatherFiveDays(int index, WeatherData currentWeather) {
   //index tells us which day it is. 0 - 4, 0 being today and 1 being the next day
   //can use this to filter through the list of forecasts for the appropriate day
   // create a list to send to weatherTilesFiveDays which is just the time we need
@@ -81,7 +80,7 @@ Widget scrollableWeatherFiveDays(int index) {
   now = now.add(Duration(days: index));
   List forecastList = [];
 
-  List forecastWeather = global_ForecastWeatherData["list"];
+  List forecastWeather = currentWeather.forecastList;
 
   for (int i = 0; i < forecastWeather.length; i++) {
     DateTime localTime =
@@ -102,7 +101,7 @@ Widget scrollableWeatherFiveDays(int index) {
       itemBuilder: (BuildContext context, int index) {
         return Padding(
           child: hourlyWeatherTile[index],
-          padding: EdgeInsets.all(0),
+          padding: const EdgeInsets.all(0),
         );
       },
     ),
@@ -119,14 +118,14 @@ class WeatherBanner {
 
   WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description, this.index);
 
-  Widget _generateBanner() {
+  Widget _generateBanner(WeatherData currentWeather) {
     if (0 < index && index < 5) {
       ExpandableController controller = ExpandableController();
       return ExpandableNotifier(
         controller: controller,
         child: ScrollOnExpand(
           child: ExpandablePanel(
-            theme: ExpandableThemeData(
+            theme: const ExpandableThemeData(
               tapBodyToCollapse: true,
               iconPlacement: ExpandablePanelIconPlacement.right,
             ),
@@ -136,7 +135,7 @@ class WeatherBanner {
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Text(
                     getDayFromWeekday(weekDay),
-                    style: TextStyle(color: Colors.black),
+                    style: const TextStyle(color: Colors.black),
                   ),
                 ),
                 Flexible(child: Container()),
@@ -150,15 +149,15 @@ class WeatherBanner {
                     children: [
                       convertTempUnits(
                         temp: maxTemp,
-                        textStyle: TextStyle(color: Colors.black),
+                        textStyle: const TextStyle(color: Colors.black),
                       ),
-                      Text(
+                      const Text(
                         "/",
                         style: TextStyle(color: Colors.black),
                       ),
                       convertTempUnits(
                         temp: minTemp,
-                        textStyle: TextStyle(color: Colors.black),
+                        textStyle: const TextStyle(color: Colors.black),
                       ),
                     ],
                   ),
@@ -166,7 +165,7 @@ class WeatherBanner {
               ],
             ),
             collapsed: SizedBox(),
-            expanded: scrollableWeatherFiveDays(index),
+            expanded: scrollableWeatherFiveDays(index, currentWeather),
             builder: (_, collapsed, expanded) {
               return Expandable(
                 collapsed: collapsed,
@@ -184,7 +183,7 @@ class WeatherBanner {
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
               getDayFromWeekday(weekDay),
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
             ),
           ),
           Flexible(child: Container()),
@@ -198,9 +197,9 @@ class WeatherBanner {
               children: [
                 convertTempUnits(
                   temp: maxTemp,
-                  textStyle: TextStyle(color: Colors.black),
+                  textStyle: const TextStyle(color: Colors.black),
                 ),
-                Text(
+                const Text(
                   "/",
                   style: TextStyle(color: Colors.black),
                 ),
@@ -208,7 +207,7 @@ class WeatherBanner {
                   temp: minTemp,
                   textStyle: TextStyle(color: Colors.black),
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 40,
                 ),
               ],
@@ -220,10 +219,10 @@ class WeatherBanner {
   }
 }
 
-List createWeatherBanners() {
+List createWeatherBanners(WeatherData currentWeather) {
   List weatherBanners = [];
 
-  var daily = global_HourlyWeatherData["daily"];
+  var daily = currentWeather.daily;
 
   for (int i = 0; i < 8; i++) {
     int epochTime = daily[i]["dt"];
@@ -236,7 +235,7 @@ List createWeatherBanners() {
       daily[i]["weather"][0]["description"],
       i,
     );
-    weatherBanners.add(temp._generateBanner());
+    weatherBanners.add(temp._generateBanner(currentWeather));
   }
   return weatherBanners;
 }
@@ -251,11 +250,11 @@ Card createSunriseSunset(WeatherData currentWeather) {
         children: [
           Row(
             children: [
-              Text(
+              const Text(
                 "Sunrise ",
                 style: TextStyle(color: Colors.black),
               ),
-              Icon(
+              const Icon(
                 CustomIcons.sunrise,
                 color: Colors.orangeAccent,
                 size: 40,
@@ -266,11 +265,11 @@ Card createSunriseSunset(WeatherData currentWeather) {
           ),
           Row(
             children: [
-              Text(
+              const Text(
                 "Sunset ",
                 style: TextStyle(color: Colors.black),
               ),
-              Icon(
+              const Icon(
                 CustomIcons.sunset,
                 color: Colors.blue,
                 size: 40,
@@ -306,7 +305,7 @@ Card createIndexCard(dynamic data, String text, IconData icon, Color iconColor) 
       children: [
         Text(
           text,
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
         ),
         Icon(
           icon,
@@ -317,7 +316,7 @@ Card createIndexCard(dynamic data, String text, IconData icon, Color iconColor) 
           padding: const EdgeInsets.all(6.0),
           child: Text(
             "$data",
-            style: TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black),
           ),
         ),
       ],

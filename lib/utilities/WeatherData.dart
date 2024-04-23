@@ -26,32 +26,43 @@ class WeatherData {
   List<String> hourlyIconNumber = [];
   double long = 0.0;
   double lat = 0.0;
+  List hourly = [];
+  List daily = [];
+  List forecastList = [];
 
   WeatherData() {
-    // sets all the variables we need
-    writeTime = DateTime.now();
-    temperature = global_HourlyWeatherData['current']['temp'];
-    condition = global_HourlyWeatherData["current"]['weather'][0]['id'].toInt();
-    cityName = global_CurrentWeatherData['name'];
-    description = global_HourlyWeatherData["current"]["weather"][0]["description"];
+    //constructor
+  }
 
-    int epochTime = global_HourlyWeatherData["current"]["dt"];
+  void setWeatherData(var data) {
+    writeTime = DateTime.now();
+    temperature = data["onecall"]["current"]["temp"];
+    condition = data["onecall"]["current"]["weather"][0]["id"].toInt();
+    cityName = data["forecast"]["city"]["name"];
+    description = data["onecall"]["current"]["weather"][0]["description"];
+
+    int epochTime = data["onecall"]["current"]["dt"];
     time = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
-    sunrise = DateTime.fromMillisecondsSinceEpoch(global_HourlyWeatherData['daily'][0]['sunrise'] * 1000);
-    sunset = DateTime.fromMillisecondsSinceEpoch(global_HourlyWeatherData['daily'][0]['sunset'] * 1000);
-    highTemp = global_HourlyWeatherData['daily'][0]['temp']["max"];
-    lowTemp = global_HourlyWeatherData['daily'][0]['temp']["min"];
+    sunrise = DateTime.fromMillisecondsSinceEpoch(data["onecall"]['daily'][0]['sunrise'] * 1000);
+    sunset = DateTime.fromMillisecondsSinceEpoch(data["onecall"]['daily'][0]['sunset'] * 1000);
+    highTemp = data["onecall"]['daily'][0]['temp']["max"];
+    lowTemp = data["onecall"]['daily'][0]['temp']["min"];
     background = _getBackground(condition, time.hour, sunrise.hour, sunset.hour);
-    humidity = global_HourlyWeatherData["current"]["humidity"].toInt();
-    windSpeed = double.parse(global_HourlyWeatherData["current"]["wind_speed"].toString());
-    uvIndex = global_HourlyWeatherData["current"]["uvi"].toInt();
-    currentIconNumber = global_HourlyWeatherData["current"]["weather"][0]["icon"];
+    humidity = data["onecall"]["current"]["humidity"].toInt();
+    windSpeed = double.parse(data["onecall"]["current"]["wind_speed"].toString());
+    uvIndex = data["onecall"]["current"]["uvi"].toInt();
+    currentIconNumber = data["onecall"]["current"]["weather"][0]["icon"];
     for (int i = 0; i < 24; i++) {
-      hourlyIconNumber.add(global_HourlyWeatherData["hourly"][i]["weather"][0]["icon"]);
+      hourlyIconNumber.add(data["onecall"]["hourly"][i]["weather"][0]["icon"]);
     }
     for (int i = 0; i < 7; i++) {
-      dailyIconNumber.add(global_HourlyWeatherData["daily"][i]["weather"][0]["icon"]);
+      dailyIconNumber.add(data["onecall"]["daily"][i]["weather"][0]["icon"]);
     }
+    long = data["onecall"]["lon"];
+    lat = data["onecall"]["lat"];
+    hourly = data["onecall"]["hourly"]; // 48 hour info, hour by hour
+    daily = data["onecall"]["daily"];
+    forecastList = data["forecast"]["list"];
   }
 
   AssetImage _getBackground(int condition, int hour, int sunrise, int sunset) {

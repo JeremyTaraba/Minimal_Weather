@@ -182,17 +182,53 @@ Icon getWeatherIcon(String iconNumber, double size, String description) {
 }
 
 Future<void> sendLocationData(String cityName) async {
+  // wont need this anymore, can replace this with apikey number when implement second api
   final user = <String, String>{DateTime.now().toString(): cityName};
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   firestore.collection("location").doc(global_userID).set(user, SetOptions(merge: true));
 }
 
-Future<void> CloudFunctionsGetWeather(double lat, double long) async {
-  print("calling callable");
+Future<dynamic> CloudFunctionsGetWeather(double lat, double long) async {
   HttpsCallable weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
-  final response = await weatherCloudFunction.call(<String, dynamic>{
-    'lat': lat,
-    'long': long,
-  });
-  print(response.data);
+  dynamic response;
+  bool gotResponse = true;
+  try {
+    response = await weatherCloudFunction.call(<String, dynamic>{
+      'lat': lat,
+      'long': long,
+    });
+  } on FirebaseFunctionsException catch (e) {
+    // Do clever things with e
+    print(e);
+    gotResponse = false;
+    global_gotWeatherSuccessfully = false;
+    global_errorMessage = "Error getting response cloud functions. $e";
+  } catch (e) {
+    // Do other things that might be thrown that I have overlooked
+    print(e);
+    gotResponse = false;
+    global_gotWeatherSuccessfully = false;
+    global_errorMessage = "Error getting response cloud functions. $e";
+  }
+
+  try {
+    if (gotResponse) {
+      if (response.data["error"] != "Error") {
+        global_errorMessage = "No Error";
+      } else {
+        print('Error getting response from url. ${response.data["error_info"]}');
+        global_gotWeatherSuccessfully = false;
+        global_errorMessage = "Error getting response from url.  ${response.data["error_info"]}";
+        return "Error";
+      }
+    } else {
+      return "Error";
+    }
+  } catch (e) {
+    print(e);
+    global_gotWeatherSuccessfully = false;
+    return "Error";
+  }
+
+  return response.data;
 }

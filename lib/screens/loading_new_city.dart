@@ -25,8 +25,8 @@ class _loadingNewCityState extends State<loadingNewCity> {
   }
 
   loadNewCity() async {
-    global_CurrentWeatherData = await getCurrentLocationWeatherWithLatLon(widget.lat, widget.long); //calls the current weather api
-    global_HourlyWeatherData = await getHourlyLocationWeatherWithLatLon(widget.lat, widget.long); //calls the hourly weather api
+    // global_CurrentWeatherData = await getCurrentLocationWeatherWithLatLon(widget.lat, widget.long); //calls the current weather api
+    // global_HourlyWeatherData = await getHourlyLocationWeatherWithLatLon(widget.lat, widget.long); //calls the hourly weather api
 
     //want to store this information from both apis into 1 global weather object
     WeatherData currentWeatherData = WeatherData();

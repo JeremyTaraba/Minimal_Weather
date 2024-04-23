@@ -29,7 +29,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  WeatherData currentWeather = WeatherData();
+  //WeatherData currentWeather = WeatherData();
   List bottomWeatherList = [];
 
   Future<void> testWeather() async {
@@ -59,14 +59,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bottomWeatherList = createBottomWeatherList(context, currentWeather);
+    bottomWeatherList = createBottomWeatherList(context, widget.locationWeather);
     return PopScope(
       canPop: false,
       child: Stack(children: [
         Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: currentWeather.background,
+              image: widget.locationWeather.background,
               fit: BoxFit.cover,
             ),
           ),
@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
             resizeToAvoidBottomInset: false,
             backgroundColor: Colors.transparent,
             appBar: LocationAppBar(
-              currentWeather: currentWeather,
+              currentWeather: widget.locationWeather,
             ),
             body: ValueListenableBuilder(
               valueListenable: global_FahrenheitUnits,
@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Padding(
                                 padding: const EdgeInsets.only(left: 20.0),
                                 child: GradientText(
-                                  "${convertUnitsIfNeedBe(currentWeather.temperature)}°",
+                                  "${convertUnitsIfNeedBe(widget.locationWeather.temperature)}°",
                                   style: kTempStyle,
                                   gradient: kTempGradient,
                                 ),
@@ -124,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 20.0),
                           child: Text(
-                            currentWeather.description.toTitleCase(),
+                            widget.locationWeather.description.toTitleCase(),
                             style: kDescriptionStyle,
                           ),
                         ),

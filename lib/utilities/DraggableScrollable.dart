@@ -31,7 +31,7 @@ DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList
 List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
   List bottomWeatherList = [
     ScollableWeatherTiles(context, currentWeather),
-    SevenDayForecast(context),
+    SevenDayForecast(context, currentWeather),
     DetailsOfTheDay(context, currentWeather),
     //AdMobBanner() //ad space
   ];
@@ -40,7 +40,7 @@ List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
 }
 
 Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
-  List hourlyWeatherTile = createWeatherTiles();
+  List hourlyWeatherTile = createWeatherTiles(currentWeather);
   return Card(
     color: Colors.white,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(30))),
@@ -62,8 +62,8 @@ Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
   );
 }
 
-SizedBox SevenDayForecast(BuildContext context) {
-  List dailyWeatherBanner = createWeatherBanners();
+SizedBox SevenDayForecast(BuildContext context, WeatherData currentWeather) {
+  List dailyWeatherBanner = createWeatherBanners(currentWeather);
   return SizedBox(
     width: MediaQuery.of(context).size.width,
     child: ListView.builder(
