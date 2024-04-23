@@ -1,4 +1,3 @@
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/DraggableScrollable.dart';
@@ -11,13 +10,17 @@ import 'package:klimate/utilities/WeatherData.dart';
 // TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen may need to add incentive like golden status or something, problem is how to check if user has subscribed or not when have no logins? use google play login?
 // TODO: Add notification for weather updates (government thingy) and for tomorrows weather
 // TODO: Add localization for other languages and be able to choose language
-// TODO: Add a way to refresh weather and also go back to original location when searching
-// TODO: Limit to 1 refresh per hour
+// TODO: Add a way to refresh weather by pulling down (changes wallpaper) and also go back to original location when searching
+// TODO: Limit to 1 refresh per 12 hours (will use the 48 hour forecast to update the 24 hour)
 // TODO: Fix it so that changing system font size does not overflow any objects
 // TODO: make it so the weather list isn't constant size of 7 but gets size of list
 // TODO: Time is not local time, can add local time somewhere or change all the times to local
 // TODO: Something is wrong with manual lookup where it changes city name
-// TODO: Before going into production MUST encrypt api key / api call then refresh key before final upload
+// TODO: Fix loading new location, broke it when adding firebase functions and deleting global_weatherVariables
+// TODO: Save location lookups to local storage, check lookups to see if have looked up in last 12 hours before doing a lookup then
+// TODO: check firebase database to see if city already exists in last 12 hours, if not then lookup and add to database
+
+// Done: Before going into production MUST encrypt api key / api call then refresh key before final upload
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.locationWeather});
@@ -29,28 +32,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  //WeatherData currentWeather = WeatherData();
   List bottomWeatherList = [];
-
-  Future<void> testWeather() async {
-    print("calling callable");
-    HttpsCallable weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
-    print("creating callable");
-    try {
-      final response = await weatherCloudFunction.call(<String, dynamic>{
-        'lat': widget.locationWeather.lat,
-        'long': widget.locationWeather.long,
-      });
-      print("after trying callable");
-      print(response.data);
-    } on FirebaseFunctionsException catch (e) {
-      // Do clever things with e
-      print(e);
-    } catch (e) {
-      // Do other things that might be thrown that I have overlooked
-      print(e);
-    }
-  }
 
   @override
   void initState() {
@@ -113,13 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ],
                           ),
-                        ),
-                        FloatingActionButton(
-                          onPressed: () async {
-                            await testWeather();
-                            print("finished calling cloud function");
-                          },
-                          child: Text("Test"),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 20.0),

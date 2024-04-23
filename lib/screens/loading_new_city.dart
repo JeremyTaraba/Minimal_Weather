@@ -19,7 +19,6 @@ class loadingNewCity extends StatefulWidget {
 class _loadingNewCityState extends State<loadingNewCity> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     loadNewCity();
   }

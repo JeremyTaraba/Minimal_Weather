@@ -3,13 +3,11 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:klimate/screens/HomeScreen.dart';
 import 'package:klimate/screens/error_screen.dart';
 import 'package:klimate/services/global_variables.dart';
-import 'package:klimate/services/fetchWeather.dart';
 import 'package:klimate/utilities/WeatherData.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:klimate/services/location.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utilities/helper_functions.dart';
-import 'dart:convert';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({Key? key}) : super(key: key);

@@ -1,10 +1,6 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
-import 'package:klimate/services/global_variables.dart';
-
-import '../services/fetchWeather.dart';
 
 class WeatherData {
   late DateTime writeTime;
