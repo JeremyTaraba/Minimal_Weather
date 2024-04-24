@@ -42,7 +42,15 @@ List createWeatherTiles(WeatherData currentWeather) {
   List weatherTiles = [];
   var hourly = currentWeather.hourly;
 
-  for (int i = 0; i < 24; i++) {
+  // this block is to check how long it has been since last got the time. Need it since we save the weather for 12 hours to reduce fetch requests
+  int hourlyGetTimeInt = hourly[0]["dt"];
+  var hourlyGetTimeDate = DateTime.fromMillisecondsSinceEpoch(hourlyGetTimeInt * 1000);
+  var timeDifference = DateTime.now().difference(hourlyGetTimeDate);
+  int startIndex = 0 + timeDifference.inHours;
+  int endIndex = 24 + timeDifference.inHours;
+  // end block
+
+  for (int i = startIndex; i < endIndex; i++) {
     int epochTime = hourly[i]["dt"];
     var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
 

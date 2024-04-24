@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:klimate/screens/HomeScreen.dart';
@@ -8,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:klimate/services/location.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utilities/helper_functions.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({Key? key}) : super(key: key);
@@ -60,10 +62,27 @@ class _LoadingScreenState extends State<LoadingScreen> {
     Location currentLocation = Location();
     await currentLocation.getCurrentLocation();
     WeatherData weatherData = WeatherData();
-
+    String? currentCity = "";
     // need to get the city based on lat and long
-    String currentCity = "";
-    bool check = await isStoredLocation("city"); // checking if location is currently stored
+    try {
+      List<geocoding.Placemark> geocodingLocation = await geocoding.placemarkFromCoordinates(currentLocation.latitude, currentLocation.longitude);
+      if (geocodingLocation[0].locality != null) {
+        currentCity = geocodingLocation[0].locality;
+      }
+    } catch (e) {
+      print(e);
+      FirebaseCrashlytics.instance.recordError("Error Geocoding: \n $e", StackTrace.current);
+    }
+
+    if (currentCity == "") {
+      // geocoding failed, throw error screen
+      print("Geocoding failed");
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return const ErrorScreen();
+      }));
+    }
+
+    bool check = await isStoredLocation(currentCity!); // checking if location is currently stored
     if (check) {
       weatherData = await getStoredLocation();
       Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -82,7 +101,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
       } else {
         //want to store this information into 1 weather object
         weatherData.setWeatherData(response);
-        setStoredLocation(weatherData.cityName, weatherData);
+
+        setStoredLocation(currentCity, weatherData);
         //updating temp units from saved settings
         global_FahrenheitUnits.value = await getTemperatureUnits();
 
