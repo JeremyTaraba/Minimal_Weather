@@ -17,6 +17,7 @@ import 'package:klimate/utilities/WeatherData.dart';
 // TODO: Time is not local time, can add local time somewhere or change all the times to local
 // TODO: Something is wrong with manual lookup where it changes city name
 // TODO: Fix loading new location, broke it when adding firebase functions and deleting global_weatherVariables
+
 // TODO: Save location lookups to local storage, check lookups to see if have looked up in last 12 hours before doing a lookup then
 // TODO: check firebase database to see if city already exists in last 12 hours, if not then lookup and add to database
 

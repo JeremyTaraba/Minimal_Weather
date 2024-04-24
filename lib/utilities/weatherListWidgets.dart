@@ -224,7 +224,7 @@ List createWeatherBanners(WeatherData currentWeather) {
 
   var daily = currentWeather.daily;
 
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < daily.length; i++) {
     int epochTime = daily[i]["dt"];
     var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
     WeatherBanner temp = WeatherBanner(

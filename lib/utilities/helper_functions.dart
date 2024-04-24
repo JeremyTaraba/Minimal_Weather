@@ -3,6 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import '../services/global_variables.dart';
+import 'WeatherData.dart';
 import 'custom_icons.dart';
 
 String getLocalTime(int hour, int minutes) {
@@ -231,4 +232,46 @@ Future<dynamic> CloudFunctionsGetWeather(double lat, double long) async {
   }
 
   return response.data;
+}
+
+Future<bool> isStoredLocation(String city) async {
+  print("is stored location?");
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final String? storedLocation = prefs.getString("storedLocation"); // should be the original location
+  if (storedLocation != null) {
+    if (city == storedLocation) {
+      final String? storedLocationTime = prefs.getString("storedLocationTime");
+      if (storedLocationTime != null) {
+        var parseDate = DateTime.parse(storedLocationTime);
+        var twelveHours = DateTime.now().subtract(const Duration(hours: 12));
+        if (parseDate.isAfter(twelveHours)) {
+          print("true for is stored location");
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+Future<void> setStoredLocation(String city, WeatherData originalLocation) async {
+  print("setting stored location");
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString("storedLocation", city);
+  prefs.setString("storedLocationTime", DateTime.now().toString());
+  prefs.setStringList("storedLocationData", originalLocation.toStringList());
+}
+
+Future<WeatherData> getStoredLocation() async {
+  print("getting stored location");
+  WeatherData storedLocation = WeatherData();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<String>? dataInStringList = prefs.getStringList("storedLocationData");
+  if (dataInStringList != null) {
+    storedLocation.convertDataFromStringList(dataInStringList);
+  }
+  return storedLocation;
 }

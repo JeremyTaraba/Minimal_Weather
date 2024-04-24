@@ -59,47 +59,56 @@ class _LoadingScreenState extends State<LoadingScreen> {
   void getLocationData() async {
     Location currentLocation = Location();
     await currentLocation.getCurrentLocation();
-    // global_CurrentWeatherData = await getCurrentLocationWeather(currentLocation); //calls the current weather api
-    // global_HourlyWeatherData = await getHourlyLocationWeather(currentLocation); //calls the hourly weather api
-    // global_ForecastWeatherData = await getFiveDayForecastWithLatLon(currentLocation); //calls the forecast weather api
+    WeatherData weatherData = WeatherData();
 
-    var response = await CloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude); // using cloud functions to get weather
-
-    if (!global_gotWeatherSuccessfully) {
-      print("there was an error");
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return ErrorScreen();
-      }));
-    } else {
-      //want to store this information into 1 weather object
-      WeatherData weatherData = WeatherData();
-      weatherData.setWeatherData(response);
-
-      //updating temp units from saved settings
-      global_FahrenheitUnits.value = await getTemperatureUnits();
-
-      //send location to firebase for analytics
-      try {
-        final userCredential = await FirebaseAuth.instance.signInAnonymously();
-        global_userID = userCredential.user?.uid;
-        print("Signed in with temporary account.");
-      } on FirebaseAuthException catch (e) {
-        switch (e.code) {
-          case "operation-not-allowed":
-            print("Anonymous auth hasn't been enabled for this project.");
-            break;
-          default:
-            print("Unknown error.");
-        }
-      }
-
-      await sendLocationData(weatherData.cityName);
-
+    // need to get the city based on lat and long
+    String currentCity = "";
+    bool check = await isStoredLocation("city"); // checking if location is currently stored
+    if (check) {
+      weatherData = await getStoredLocation();
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return HomeScreen(
           locationWeather: weatherData,
         );
       }));
+    } else {
+      // look up new location
+      var response = await CloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude);
+      if (!global_gotWeatherSuccessfully) {
+        print("there was an error");
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return const ErrorScreen();
+        }));
+      } else {
+        //want to store this information into 1 weather object
+        weatherData.setWeatherData(response);
+        setStoredLocation(weatherData.cityName, weatherData);
+        //updating temp units from saved settings
+        global_FahrenheitUnits.value = await getTemperatureUnits();
+
+        //send location to firebase for analytics
+        try {
+          final userCredential = await FirebaseAuth.instance.signInAnonymously();
+          global_userID = userCredential.user?.uid;
+          print("Signed in with temporary account.");
+        } on FirebaseAuthException catch (e) {
+          switch (e.code) {
+            case "operation-not-allowed":
+              print("Anonymous auth hasn't been enabled for this project.");
+              break;
+            default:
+              print("Unknown error.");
+          }
+        }
+
+        await sendLocationData(weatherData.cityName);
+
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return HomeScreen(
+            locationWeather: weatherData,
+          );
+        }));
+      }
     }
   }
 

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -18,8 +19,8 @@ class WeatherData {
   double windSpeed = 0;
   int uvIndex = 0;
   String currentIconNumber = "";
-  List<String> dailyIconNumber = [];
-  List<String> hourlyIconNumber = [];
+  //List<String> dailyIconNumber = [];
+  //List<String> hourlyIconNumber = [];
   double long = 0.0;
   double lat = 0.0;
   List hourly = [];
@@ -48,17 +49,17 @@ class WeatherData {
     windSpeed = double.parse(data["onecall"]["current"]["wind_speed"].toString());
     uvIndex = data["onecall"]["current"]["uvi"].toInt();
     currentIconNumber = data["onecall"]["current"]["weather"][0]["icon"];
-    for (int i = 0; i < 24; i++) {
-      hourlyIconNumber.add(data["onecall"]["hourly"][i]["weather"][0]["icon"]);
-    }
-    for (int i = 0; i < 7; i++) {
-      dailyIconNumber.add(data["onecall"]["daily"][i]["weather"][0]["icon"]);
-    }
+    // for (int i = 0; i < 24; i++) {
+    //   hourlyIconNumber.add(data["onecall"]["hourly"][i]["weather"][0]["icon"]);
+    // }
+    // for (int i = 0; i < 7; i++) {
+    //   dailyIconNumber.add(data["onecall"]["daily"][i]["weather"][0]["icon"]);
+    // }
     long = data["onecall"]["lon"];
     lat = data["onecall"]["lat"];
     hourly = data["onecall"]["hourly"]; // 48 hour info, hour by hour
-    daily = data["onecall"]["daily"];
-    forecastList = data["forecast"]["list"];
+    daily = data["onecall"]["daily"]; // 8 days weather overview, including today
+    forecastList = data["forecast"]["list"]; // 5 day 3 hour forecast
   }
 
   AssetImage _getBackground(int condition, int hour, int sunrise, int sunset) {
@@ -73,7 +74,7 @@ class WeatherData {
     if (condition < 300) {
       // thunderstorm
 
-      return AssetImage("images/thunderstorm/1.jpg");
+      return const AssetImage("images/thunderstorm/1.jpg");
     } else if (condition < 400) {
       // drizzle
 
@@ -98,7 +99,7 @@ class WeatherData {
     } else if (condition < 800) {
       // atmosphere (fog, mist, smoke, haze)
 
-      return AssetImage("images/atmosphere/1.jpg");
+      return const AssetImage("images/atmosphere/1.jpg");
     } else if (condition == 800 || condition == 801) {
       // clear and mostly clear
       if (day) {
@@ -144,7 +145,56 @@ class WeatherData {
       return const AssetImage("images/Error.jpg");
     }
   }
+
+  List<String> toStringList() {
+    List<String> dataInStringFormat = [];
+    dataInStringFormat.add(writeTime.toString());
+    dataInStringFormat.add(temperature.toString());
+    dataInStringFormat.add(condition.toString());
+    dataInStringFormat.add(cityName.toString());
+    dataInStringFormat.add(description.toString());
+    dataInStringFormat.add(time.toString());
+    dataInStringFormat.add(sunrise.toString());
+    dataInStringFormat.add(sunset.toString());
+    dataInStringFormat.add(highTemp.toString());
+    dataInStringFormat.add(lowTemp.toString());
+    dataInStringFormat.add(humidity.toString());
+    dataInStringFormat.add(windSpeed.toString());
+    dataInStringFormat.add(uvIndex.toString());
+    dataInStringFormat.add(currentIconNumber.toString());
+    dataInStringFormat.add(long.toString());
+    dataInStringFormat.add(lat.toString());
+    dataInStringFormat.add(jsonEncode(hourly));
+    dataInStringFormat.add(jsonEncode(daily));
+    dataInStringFormat.add(jsonEncode(forecastList));
+
+    return dataInStringFormat;
+  }
+
+  void convertDataFromStringList(List<String> data) {
+    writeTime = DateTime.parse(data[0]);
+    temperature = double.parse(data[1]) as num;
+    condition = int.parse(data[2]);
+    cityName = data[3];
+    description = data[4];
+    time = DateTime.parse(data[5]);
+    sunrise = DateTime.parse(data[6]);
+    sunset = DateTime.parse(data[7]);
+    highTemp = double.parse(data[8]);
+    lowTemp = double.parse(data[9]);
+    humidity = double.parse(data[10]) as num;
+    windSpeed = double.parse(data[11]);
+    uvIndex = int.parse(data[12]);
+    currentIconNumber = data[13];
+    long = double.parse(data[14]);
+    lat = double.parse(data[15]);
+    background = _getBackground(condition, time.hour, sunrise.hour, sunset.hour);
+    hourly = json.decode(data[16]);
+    daily = json.decode(data[17]);
+    forecastList = json.decode(data[18]);
+  }
 }
+
 //
 // // writes data to the file
 // Future<File> writeWeatherData(var weatherJson) async {
