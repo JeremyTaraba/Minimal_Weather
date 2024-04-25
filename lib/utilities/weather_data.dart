@@ -43,21 +43,15 @@ class WeatherData {
     time = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
     sunrise = DateTime.fromMillisecondsSinceEpoch(data["onecall"]['daily'][0]['sunrise'] * 1000);
     sunset = DateTime.fromMillisecondsSinceEpoch(data["onecall"]['daily'][0]['sunset'] * 1000);
-    highTemp = data["onecall"]['daily'][0]['temp']["max"];
-    lowTemp = data["onecall"]['daily'][0]['temp']["min"];
+    highTemp = data["onecall"]['daily'][0]['temp']["max"].toDouble();
+    lowTemp = data["onecall"]['daily'][0]['temp']["min"].toDouble();
     background = _getBackground(condition, time.hour, sunrise.hour, sunset.hour);
     humidity = data["onecall"]["current"]["humidity"].toInt();
     windSpeed = double.parse(data["onecall"]["current"]["wind_speed"].toString());
     uvIndex = data["onecall"]["current"]["uvi"].toInt();
     currentIconNumber = data["onecall"]["current"]["weather"][0]["icon"];
-    // for (int i = 0; i < 24; i++) {
-    //   hourlyIconNumber.add(data["onecall"]["hourly"][i]["weather"][0]["icon"]);
-    // }
-    // for (int i = 0; i < 7; i++) {
-    //   dailyIconNumber.add(data["onecall"]["daily"][i]["weather"][0]["icon"]);
-    // }
-    long = data["onecall"]["lon"];
-    lat = data["onecall"]["lat"];
+    long = data["onecall"]["lon"].toDouble();
+    lat = data["onecall"]["lat"].toDouble();
     hourly = data["onecall"]["hourly"]; // 48 hour info, hour by hour
     daily = data["onecall"]["daily"]; // 8 days weather overview, including today
     forecastList = data["forecast"]["list"]; // 5 day 3 hour forecast

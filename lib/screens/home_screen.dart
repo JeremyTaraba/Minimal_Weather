@@ -25,7 +25,10 @@ import 'package:klimate/utilities/weather_data.dart';
 // TODO: Add localization for other languages and be able to choose language
 // TODO: Way to go back to original location when searching? would need to add logic to homescreen to know when searching
 // TODO: Add military time in settings
+// TODO: Some users lookup 20+ different locations, add a limit to how many location lookups per user: 5 per hour seems reasonable
+// ^ also if we save last 3 lookups then those don't count towards the 7 per hour (maybe save last 7 lookup?) so can still "look" those up
 
+// TODO: If account is disabled, make it so cant use cloud functions
 // TODO: Going back on loading screen should do something when it takes forever to load
 // TODO: Searching for new city only shows some of the cities by name not all of them
 // TODO: Time is not local city time when doing manual look up, it is your own local time
