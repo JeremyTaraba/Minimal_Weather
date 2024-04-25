@@ -34,6 +34,8 @@ import 'package:klimate/utilities/weather_data.dart';
 // TODO: check firebase database to see if city already exists in last 12 hours, if not then lookup and add to database
 // TODO: sometimes it takes a really long time to load when installing for first time, make app reset after long time
 
+// TODO: Should add tests if every updating this after it goes into production, don't want to unknowing break things by adding 1 small feature
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.locationWeather, required this.cityName});
 
