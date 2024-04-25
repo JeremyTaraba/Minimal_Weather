@@ -78,16 +78,16 @@ class _ErrorScreenState extends State<ErrorScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Divider(),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
+                          const Divider(),
+                          const Padding(
+                            padding: EdgeInsets.all(8.0),
                             child: Icon(
                               Icons.warning_rounded,
                               color: Colors.red,
                               size: 55,
                             ),
                           ),
-                          Text(
+                          const Text(
                             "Froggy Weather is experiencing more traffic than it can handle.  "
                             "We are working on fixing it. \n \n"
                             "If you have suggestions for making the app better send an email to:",
@@ -99,7 +99,7 @@ class _ErrorScreenState extends State<ErrorScreen> {
                               print("email");
                               _launchURL();
                             },
-                            child: Text(
+                            child: const Text(
                               "FroggyWeatherInfo@gmail.com",
                               style: TextStyle(
                                 color: Colors.blue,

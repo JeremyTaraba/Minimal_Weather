@@ -4,6 +4,7 @@ const TextStyle kTempStyle = TextStyle(
   fontSize: 130,
   fontWeight: FontWeight.bold,
   fontFamily: 'Hedvig',
+  color: Colors.white,
 );
 
 const TextStyle kErrorTextStyle = TextStyle(
@@ -21,9 +22,10 @@ const TextStyle kDescriptionStyle = TextStyle(
   fontSize: 40,
   fontFamily: 'Alice',
   fontWeight: FontWeight.bold,
+  color: Colors.white,
 );
 
-LinearGradient kTempGradient = LinearGradient(
+LinearGradient kTempGradient = const LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
   colors: [
@@ -32,7 +34,7 @@ LinearGradient kTempGradient = LinearGradient(
     // Colors.white.withOpacity(0.4),
     // Colors.white.withOpacity(0.2),
   ],
-  stops: const [
+  stops: [
     0.0,
     // 0.7,
     // 0.8,
@@ -64,6 +66,7 @@ const TextStyle kLocalTimeStyle = TextStyle(
 );
 
 const TextStyle kSunsetSunriseStyle = TextStyle(
+  color: Colors.black,
   fontSize: 18,
   fontFamily: 'Alice',
 );
@@ -76,6 +79,23 @@ const TextStyle kTempHighLowStyle = TextStyle(
 const TextStyle kLocalTimeAMPMStyle = TextStyle(
   fontSize: 12,
   fontFamily: 'Alice',
+);
+
+const TextStyle kIndexCardStyle = TextStyle(
+  color: Colors.black,
+  fontSize: 18,
+  fontFamily: 'Alice',
+);
+
+const TextStyle kBannerStyle = TextStyle(
+  color: Colors.black,
+  fontSize: 20,
+  fontFamily: 'Alice',
+);
+
+const TextStyle kBannerTempsStyle = TextStyle(
+  color: Colors.black,
+  fontSize: 16,
 );
 
 const InputDecoration kTextFieldDecoration = InputDecoration(

@@ -3,7 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import '../services/global_variables.dart';
-import 'WeatherData.dart';
+import 'weather_data.dart';
 import 'custom_icons.dart';
 
 String getLocalTime(int hour, int minutes) {
@@ -36,7 +36,7 @@ String getAMPM(int hour) {
 }
 
 String getTimeWithAMPM(int hour, int minutes) {
-  return getLocalTime(hour, minutes) + " " + getAMPM(hour);
+  return "${getLocalTime(hour, minutes)} ${getAMPM(hour)}";
 }
 
 String getDayFromWeekday(int weekday) {
@@ -64,19 +64,6 @@ extension StringCasingExtension on String {
   String toCapitalized() => length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
   String toTitleCase() => replaceAll(RegExp(' +'), ' ').split(' ').map((str) => str.toCapitalized()).join(' ');
 }
-//
-// // finds the correct local path to create a local file
-// Future<String> get _localPath async {
-//   final directory = await getApplicationDocumentsDirectory();
-//
-//   return directory.path;
-// }
-//
-// // creates a reference to the file location using _localPath
-// Future<File> get localFile async {
-//   final path = await _localPath;
-//   return File('$path/counter.txt');
-// }
 
 setToFahrenheit() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -122,15 +109,15 @@ String metersSecondToMph(double mph) {
   return "${(mph).toStringAsFixed(2)} m/s";
 }
 
-class convertTempUnits extends StatefulWidget {
-  const convertTempUnits({super.key, required this.temp, required this.textStyle});
-  final temp;
+class ConvertTempUnits extends StatefulWidget {
+  const ConvertTempUnits({super.key, required this.temp, required this.textStyle});
+  final num temp;
   final TextStyle textStyle;
   @override
-  State<convertTempUnits> createState() => _convertTempUnitsState();
+  State<ConvertTempUnits> createState() => _ConvertTempUnitsState();
 }
 
-class _convertTempUnitsState extends State<convertTempUnits> {
+class _ConvertTempUnitsState extends State<ConvertTempUnits> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -186,10 +173,10 @@ Future<void> sendLocationData(String cityName) async {
   // wont need this anymore, can replace this with apikey number when implement second api
   final user = <String, String>{DateTime.now().toString(): cityName};
   FirebaseFirestore firestore = FirebaseFirestore.instance;
-  firestore.collection("location").doc(global_userID).set(user, SetOptions(merge: true));
+  await firestore.collection("location").doc(global_userID).set(user, SetOptions(merge: true));
 }
 
-Future<dynamic> CloudFunctionsGetWeather(double lat, double long) async {
+Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
   HttpsCallable weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
   dynamic response;
   bool gotResponse = true;
@@ -234,10 +221,14 @@ Future<dynamic> CloudFunctionsGetWeather(double lat, double long) async {
   return response.data;
 }
 
-Future<bool> isStoredLocation(String city) async {
+Future<bool> isStoredLocation(String? city) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  final String? storedLocation = prefs.getString("storedLocation"); // should be the original location
+  String? storedLocation = prefs.getString("storedLocation"); // should be the original location
   if (storedLocation != null) {
+    storedLocation = storedLocation.toLowerCase().trim();
+    city = city?.toLowerCase().trim();
+    // print("storedLocation - $storedLocation");
+    // print("city - $city");
     if (city == storedLocation) {
       final String? storedLocationTime = prefs.getString("storedLocationTime");
       if (storedLocationTime != null) {

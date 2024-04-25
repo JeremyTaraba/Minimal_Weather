@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 
 class WeatherData {
-  late DateTime writeTime;
+  late DateTime writeTime; // is not used anywhere
   num temperature = 0;
   int condition = 0;
   String cityName = "";
@@ -26,6 +26,7 @@ class WeatherData {
   List hourly = [];
   List daily = [];
   List forecastList = [];
+  //double timeZoneOffset = 0;
 
   WeatherData() {
     //constructor
@@ -60,6 +61,7 @@ class WeatherData {
     hourly = data["onecall"]["hourly"]; // 48 hour info, hour by hour
     daily = data["onecall"]["daily"]; // 8 days weather overview, including today
     forecastList = data["forecast"]["list"]; // 5 day 3 hour forecast
+    //timeZoneOffset = data["onecall"]["timezone_offset"];
   }
 
   AssetImage _getBackground(int condition, int hour, int sunrise, int sunset) {
@@ -167,7 +169,7 @@ class WeatherData {
     dataInStringFormat.add(jsonEncode(hourly));
     dataInStringFormat.add(jsonEncode(daily));
     dataInStringFormat.add(jsonEncode(forecastList));
-
+    //dataInStringFormat.add(timeZoneOffset.toString());
     return dataInStringFormat;
   }
 
@@ -192,6 +194,7 @@ class WeatherData {
     hourly = json.decode(data[16]);
     daily = json.decode(data[17]);
     forecastList = json.decode(data[18]);
+    //timeZoneOffset = double.parse(data[19]);
   }
 }
 

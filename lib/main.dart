@@ -23,8 +23,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: LoadingScreen(),
+      theme: ThemeData.dark().copyWith(
+        textTheme: const TextTheme(
+          titleMedium: TextStyle(color: Colors.white),
+        ),
+        textSelectionTheme: const TextSelectionThemeData(
+          selectionColor: Colors.green,
+          selectionHandleColor: Colors.green,
+        ),
+      ),
+      home: const LoadingScreen(),
     );
   }
 }

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:klimate/screens/loading_new_city.dart';
 import 'package:klimate/services/global_variables.dart';
-import 'package:klimate/utilities/City.dart';
+import 'package:klimate/utilities/city.dart';
 import 'package:klimate/utilities/helper_functions.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'constants.dart';
 
 class LocationAppBar extends StatefulWidget implements PreferredSizeWidget {
-  const LocationAppBar({super.key, @required this.currentWeather});
-  final currentWeather;
+  const LocationAppBar({super.key, required this.cityName});
+  final String? cityName;
   @override
   State<LocationAppBar> createState() => _LocationAppBarState();
 
@@ -23,7 +23,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
   @override
   void initState() {
     super.initState();
-    originalName = widget.currentWeather.cityName;
+    originalName = widget.cityName!;
     textController.text = originalName;
   }
 
@@ -38,7 +38,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
           children: [
             Container(
               height: MediaQuery.of(context).size.height / 20,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white24,
                 borderRadius: BorderRadius.all(Radius.circular(30)),
               ),
@@ -47,6 +47,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
                 suggestionsCallback: allCities,
                 builder: (context, textController, focusNode) {
                   return TextField(
+                    cursorColor: Colors.green,
                     textCapitalization: TextCapitalization.words,
                     controller: textController,
                     focusNode: focusNode,
@@ -75,18 +76,21 @@ class _LocationAppBarState extends State<LocationAppBar> {
                 ),
                 onSelected: (City value) {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                    return loadingNewCity(lat: value.lat, long: value.long, cityName: textController.text);
+                    return LoadingNewCity(lat: value.lat, long: value.long, cityName: textController.text.trim());
                   }));
                 },
-                itemBuilder: (context, City) => ListTile(
-                  title: Text(City.city),
-                  subtitle: City.state != null
+                itemBuilder: (context, City location) => ListTile(
+                  title: Text(location.city),
+                  subtitle: location.state != null
                       ? Text(
-                          '${City.state}, ${City.country}',
+                          '${location.state}, ${location.country}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         )
-                      : Text('\$${City.country}'),
+                      : Text(
+                          '\$${location.country}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
                 ),
               ),
             ),
@@ -98,6 +102,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
           padding: const EdgeInsets.only(right: 10.0),
           child: PopupMenuButton<Widget>(
             child: const Icon(
+              color: Colors.white,
               Icons.settings,
               size: 32,
             ),
@@ -117,7 +122,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
                         color: global_FahrenheitUnits.value == 1 ? Colors.white30 : Colors.green,
                       ),
                     ),
-                    Text("Celsius"),
+                    const Text("Celsius"),
                   ],
                 ),
               ),
@@ -136,7 +141,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
                         color: global_FahrenheitUnits.value == 1 ? Colors.green : Colors.white30,
                       ),
                     ),
-                    Text("Fahrenheit"),
+                    const Text("Fahrenheit"),
                   ],
                 ),
               ),

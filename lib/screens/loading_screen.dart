@@ -1,10 +1,10 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:klimate/screens/HomeScreen.dart';
+import 'package:klimate/screens/home_screen.dart';
 import 'package:klimate/screens/error_screen.dart';
 import 'package:klimate/services/global_variables.dart';
-import 'package:klimate/utilities/WeatherData.dart';
+import 'package:klimate/utilities/weather_data.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:klimate/services/location.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,7 +12,7 @@ import '../utilities/helper_functions.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 
 class LoadingScreen extends StatefulWidget {
-  const LoadingScreen({Key? key}) : super(key: key);
+  const LoadingScreen({super.key});
 
   @override
   State<LoadingScreen> createState() => _LoadingScreenState();
@@ -63,11 +63,18 @@ class _LoadingScreenState extends State<LoadingScreen> {
     await currentLocation.getCurrentLocation();
     WeatherData weatherData = WeatherData();
     String? currentCity = "";
+    bool geocodingCityFailed = false;
     // need to get the city based on lat and long
     try {
       List<geocoding.Placemark> geocodingLocation = await geocoding.placemarkFromCoordinates(currentLocation.latitude, currentLocation.longitude);
-      if (geocodingLocation[0].locality != null) {
+      if (geocodingLocation[0].locality != "") {
         currentCity = geocodingLocation[0].locality;
+      } else {
+        print("null locality, defaulting to country");
+        if (geocodingLocation[0].country != "") {
+          geocodingCityFailed = true;
+          currentCity = geocodingLocation[0].country;
+        }
       }
     } catch (e) {
       print(e);
@@ -76,25 +83,29 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
     if (currentCity == "") {
       // geocoding failed, throw error screen
-      print("Geocoding failed");
+      global_errorMessage = "Geocoding failed, country was also null";
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const ErrorScreen();
       }));
     }
 
-    bool check = await isStoredLocation(currentCity!); // checking if location is currently stored
-    if (check) {
+    bool checkIfCitySaved = await isStoredLocation(currentCity!); // checking if location is currently stored
+    if (checkIfCitySaved) {
       weatherData = await getStoredLocation();
+      if (!geocodingCityFailed) {
+        weatherData.cityName = currentCity;
+      }
+
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return HomeScreen(
           locationWeather: weatherData,
+          cityName: weatherData.cityName,
         );
       }));
     } else {
       // look up new location
-      var response = await CloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude);
+      var response = await cloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude);
       if (!global_gotWeatherSuccessfully) {
-        print("there was an error");
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return const ErrorScreen();
         }));
@@ -102,7 +113,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
         //want to store this information into 1 weather object
         weatherData.setWeatherData(response);
 
-        setStoredLocation(currentCity, weatherData);
+        // save initial lookup into local storage
+        if (!geocodingCityFailed) {
+          weatherData.cityName = currentCity;
+          setStoredLocation(currentCity, weatherData);
+        }
+
         //updating temp units from saved settings
         global_FahrenheitUnits.value = await getTemperatureUnits();
 
@@ -114,10 +130,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
         } on FirebaseAuthException catch (e) {
           switch (e.code) {
             case "operation-not-allowed":
-              print("Anonymous auth hasn't been enabled for this project.");
+              global_errorMessage = "Anonymous auth hasn't been enabled for this project.";
               break;
             default:
-              print("Unknown error.");
+              global_errorMessage = "Unknown error with FirebaseAuth.";
           }
         }
 
@@ -126,6 +142,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return HomeScreen(
             locationWeather: weatherData,
+            cityName: weatherData.cityName,
           );
         }));
       }

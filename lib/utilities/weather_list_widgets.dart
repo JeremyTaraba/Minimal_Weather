@@ -1,8 +1,11 @@
 import 'package:expandable/expandable.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:klimate/utilities/helper_functions.dart';
 
-import 'WeatherData.dart';
+import 'weather_data.dart';
+import 'constants.dart';
 import 'custom_icons.dart';
 
 class WeatherTile {
@@ -16,22 +19,26 @@ class WeatherTile {
 
   Column _generateTile(int tileNumber) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Text(
-          getTimeWithAMPM(twentyFourHour, 0),
-          style: const TextStyle(color: Colors.black),
+        Flexible(
+          child: Text(
+            getTimeWithAMPM(twentyFourHour, 0),
+            style: const TextStyle(color: Colors.black, fontSize: 16),
+          ),
         ),
-        Container(
-          height: 20,
+        Flexible(
           child: Text(
             main == "Rain" ? "${(pop * 100).toInt()}%" : "",
-            style: const TextStyle(color: Colors.blue),
+            style: const TextStyle(color: Colors.blue, fontSize: 16),
           ),
         ),
         getWeatherIcon(icon, 40, description),
-        convertTempUnits(
-          temp: temp,
-          textStyle: const TextStyle(color: Colors.black),
+        Flexible(
+          child: ConvertTempUnits(
+            temp: temp,
+            textStyle: const TextStyle(color: Colors.black, fontSize: 18),
+          ),
         ),
       ],
     );
@@ -79,7 +86,7 @@ List createWeatherTilesFiveDays(List forecastList) {
   return weatherTiles;
 }
 
-Widget scrollableWeatherFiveDays(int index, WeatherData currentWeather) {
+Widget scrollableWeatherFiveDays(int index, WeatherData currentWeather, BuildContext context) {
   //index tells us which day it is. 0 - 4, 0 being today and 1 being the next day
   //can use this to filter through the list of forecasts for the appropriate day
   // create a list to send to weatherTilesFiveDays which is just the time we need
@@ -100,7 +107,7 @@ Widget scrollableWeatherFiveDays(int index, WeatherData currentWeather) {
 
   List hourlyWeatherTile = createWeatherTilesFiveDays(forecastList);
   return SizedBox(
-    height: 100, //MediaQuery.of(context).size.width / 3.3,
+    height: MediaQuery.of(context).textScaler.scale(MediaQuery.of(context).size.width) / 3.5,
     child: ListView.builder(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
@@ -109,7 +116,7 @@ Widget scrollableWeatherFiveDays(int index, WeatherData currentWeather) {
       itemBuilder: (BuildContext context, int index) {
         return Padding(
           child: hourlyWeatherTile[index],
-          padding: const EdgeInsets.all(0),
+          padding: const EdgeInsets.only(left: 3, right: 3),
         );
       },
     ),
@@ -126,7 +133,7 @@ class WeatherBanner {
 
   WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description, this.index);
 
-  Widget _generateBanner(WeatherData currentWeather) {
+  Widget _generateBanner(WeatherData currentWeather, BuildContext context) {
     if (0 < index && index < 5) {
       ExpandableController controller = ExpandableController();
       return ExpandableNotifier(
@@ -136,49 +143,53 @@ class WeatherBanner {
             theme: const ExpandableThemeData(
               tapBodyToCollapse: true,
               iconPlacement: ExpandablePanelIconPlacement.right,
+              hasIcon: true,
             ),
             header: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
                   child: Text(
                     getDayFromWeekday(weekDay),
-                    style: const TextStyle(color: Colors.black),
+                    style: kBannerStyle,
                   ),
                 ),
                 Flexible(child: Container()),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
-                  child: getWeatherIcon(icon, 40, description),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: getWeatherIcon(icon, 40, description),
+                  ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: Row(
                     children: [
-                      convertTempUnits(
+                      ConvertTempUnits(
                         temp: maxTemp,
-                        textStyle: const TextStyle(color: Colors.black),
+                        textStyle: kBannerTempsStyle,
                       ),
                       const Text(
                         "/",
                         style: TextStyle(color: Colors.black),
                       ),
-                      convertTempUnits(
+                      ConvertTempUnits(
                         temp: minTemp,
-                        textStyle: const TextStyle(color: Colors.black),
+                        textStyle: kBannerTempsStyle,
                       ),
                     ],
                   ),
                 )
               ],
             ),
-            collapsed: SizedBox(),
-            expanded: scrollableWeatherFiveDays(index, currentWeather),
+            collapsed: const SizedBox(),
+            expanded: scrollableWeatherFiveDays(index, currentWeather, context),
             builder: (_, collapsed, expanded) {
               return Expandable(
                 collapsed: collapsed,
                 expanded: expanded,
-                theme: const ExpandableThemeData(crossFadePoint: 0),
+                theme: const ExpandableThemeData(crossFadePoint: 0.6),
               );
             },
           ),
@@ -186,34 +197,38 @@ class WeatherBanner {
       );
     } else {
       return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 6.0),
             child: Text(
               getDayFromWeekday(weekDay),
-              style: const TextStyle(color: Colors.black),
+              style: kBannerStyle,
             ),
           ),
           Flexible(child: Container()),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
-            child: getWeatherIcon(icon, 40, description),
+          Flexible(
+            //padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 4.0),
+              child: getWeatherIcon(icon, 40, description),
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: Row(
               children: [
-                convertTempUnits(
+                ConvertTempUnits(
                   temp: maxTemp,
-                  textStyle: const TextStyle(color: Colors.black),
+                  textStyle: kBannerTempsStyle,
                 ),
                 const Text(
                   "/",
-                  style: TextStyle(color: Colors.black),
+                  style: kBannerStyle,
                 ),
-                convertTempUnits(
+                ConvertTempUnits(
                   temp: minTemp,
-                  textStyle: TextStyle(color: Colors.black),
+                  textStyle: kBannerTempsStyle,
                 ),
                 const SizedBox(
                   width: 40,
@@ -227,7 +242,7 @@ class WeatherBanner {
   }
 }
 
-List createWeatherBanners(WeatherData currentWeather) {
+List createWeatherBanners(WeatherData currentWeather, BuildContext context) {
   List weatherBanners = [];
 
   var daily = currentWeather.daily;
@@ -243,7 +258,7 @@ List createWeatherBanners(WeatherData currentWeather) {
       daily[i]["weather"][0]["description"],
       i,
     );
-    weatherBanners.add(temp._generateBanner(currentWeather));
+    weatherBanners.add(temp._generateBanner(currentWeather, context));
   }
   return weatherBanners;
 }
@@ -252,79 +267,90 @@ Card createSunriseSunset(WeatherData currentWeather) {
   return Card(
     color: Colors.white,
     child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              const Text(
-                "Sunrise ",
-                style: TextStyle(color: Colors.black),
-              ),
-              const Icon(
-                CustomIcons.sunrise,
-                color: Colors.orangeAccent,
-                size: 40,
-              ),
-              Text("${getLocalTime(currentWeather.sunrise.hour, currentWeather.sunrise.minute)} ${getAMPM(currentWeather.sunrise.hour)}",
-                  style: TextStyle(color: Colors.black)),
-            ],
-          ),
-          Row(
-            children: [
-              const Text(
-                "Sunset ",
-                style: TextStyle(color: Colors.black),
-              ),
-              const Icon(
-                CustomIcons.sunset,
-                color: Colors.blue,
-                size: 40,
-              ),
-              Text(
-                "${getLocalTime(currentWeather.sunset.hour, currentWeather.sunset.minute)} ${getAMPM(currentWeather.sunset.hour)}",
-                style: TextStyle(color: Colors.black),
-              )
-            ],
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Text(
+                  "Sunrise ",
+                  style: kSunsetSunriseStyle,
+                ),
+                const Icon(
+                  CustomIcons.sunrise,
+                  color: Colors.orangeAccent,
+                  size: 40,
+                ),
+                Text("${getLocalTime(currentWeather.sunrise.hour, currentWeather.sunrise.minute)} ${getAMPM(currentWeather.sunrise.hour)}",
+                    style: kSunsetSunriseStyle),
+              ],
+            ),
+            const SizedBox(
+              width: 20,
+            ),
+            Row(
+              children: [
+                const Text(
+                  "Sunset ",
+                  style: kSunsetSunriseStyle,
+                ),
+                const Icon(
+                  CustomIcons.sunset,
+                  color: Colors.blue,
+                  size: 40,
+                ),
+                Text(
+                  "${getLocalTime(currentWeather.sunset.hour, currentWeather.sunset.minute)} ${getAMPM(currentWeather.sunset.hour)}",
+                  style: kSunsetSunriseStyle,
+                )
+              ],
+            ),
+          ],
+        ),
       ),
     ),
   );
 }
 
-Card createHumidity(WeatherData currentWeather) {
+Widget createHumidity(WeatherData currentWeather) {
   return createIndexCard("${currentWeather.humidity}%", "Humidity", Icons.water_drop, Colors.indigo);
 }
 
-Card createWind(WeatherData currentWeather) {
+Widget createWind(WeatherData currentWeather) {
   return createIndexCard(metersSecondToMph(currentWeather.windSpeed), "Wind", Icons.air, Colors.lightBlueAccent);
 }
 
-Card createUVIndex(WeatherData currentWeather) {
+Widget createUVIndex(WeatherData currentWeather) {
   return createIndexCard(currentWeather.uvIndex, "UV Index", Icons.sunny, Colors.deepPurple);
 }
 
-Card createIndexCard(dynamic data, String text, IconData icon, Color iconColor) {
+Widget createIndexCard(dynamic data, String text, IconData icon, Color iconColor) {
   return Card(
     color: Colors.white,
     child: Column(
       children: [
-        Text(
-          text,
-          style: const TextStyle(color: Colors.black),
+        Flexible(
+          fit: FlexFit.tight,
+          child: Text(
+            text,
+            style: kIndexCardStyle,
+          ),
         ),
-        Icon(
-          icon,
-          color: iconColor,
-          size: 30,
+        Flexible(
+          child: Icon(
+            icon,
+            color: iconColor,
+            size: 30,
+          ),
         ),
         Padding(
           padding: const EdgeInsets.all(6.0),
           child: Text(
             "$data",
-            style: const TextStyle(color: Colors.black),
+            style: kIndexCardStyle,
           ),
         ),
       ],

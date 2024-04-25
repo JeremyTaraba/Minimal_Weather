@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:klimate/utilities/WeatherData.dart';
-import 'package:klimate/utilities/weatherListWidgets.dart';
+import 'package:klimate/utilities/weather_data.dart';
+import 'package:klimate/utilities/weather_list_widgets.dart';
 
-DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList) {
+DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList, BuildContext context) {
   return DraggableScrollableSheet(
-    initialChildSize: 0.17,
+    initialChildSize: MediaQuery.of(context).textScaler.scale(0.17),
     minChildSize: 0.17,
     maxChildSize: 1,
     builder: (BuildContext context, ScrollController scrollController) => ClipRRect(
@@ -30,8 +30,8 @@ DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList
 
 List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
   List bottomWeatherList = [
-    ScollableWeatherTiles(context, currentWeather),
-    SevenDayForecast(context, currentWeather),
+    scrollableWeatherTiles(context, currentWeather),
+    sevenDayForecast(context, currentWeather),
     DetailsOfTheDay(context, currentWeather),
     //AdMobBanner() //ad space
   ];
@@ -39,13 +39,13 @@ List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
   return bottomWeatherList;
 }
 
-Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
+Card scrollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
   List hourlyWeatherTile = createWeatherTiles(currentWeather);
   return Card(
     color: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(30))),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(30))),
     child: SizedBox(
-      height: MediaQuery.of(context).size.width / 3.3,
+      height: MediaQuery.of(context).textScaler.scale(MediaQuery.of(context).size.width / 3.3),
       child: ListView.builder(
         physics: const ClampingScrollPhysics(),
         shrinkWrap: true,
@@ -54,7 +54,7 @@ Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
         itemBuilder: (BuildContext context, int index) {
           return Padding(
             child: hourlyWeatherTile[index],
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
           );
         },
       ),
@@ -62,26 +62,23 @@ Card ScollableWeatherTiles(BuildContext context, WeatherData currentWeather) {
   );
 }
 
-SizedBox SevenDayForecast(BuildContext context, WeatherData currentWeather) {
-  List dailyWeatherBanner = createWeatherBanners(currentWeather);
-  return SizedBox(
-    width: MediaQuery.of(context).size.width,
-    child: ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: dailyWeatherBanner.length,
-      itemBuilder: (BuildContext context, int index) {
-        return Padding(
-          child: Card(color: Colors.white, child: dailyWeatherBanner[index]),
-          padding: EdgeInsets.symmetric(horizontal: 2),
-        );
-      },
-    ),
+Widget sevenDayForecast(BuildContext context, WeatherData currentWeather) {
+  List dailyWeatherBanner = createWeatherBanners(currentWeather, context);
+  return ListView.builder(
+    physics: const NeverScrollableScrollPhysics(),
+    shrinkWrap: true,
+    itemCount: dailyWeatherBanner.length,
+    itemBuilder: (BuildContext context, int index) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: Card(color: Colors.white, child: dailyWeatherBanner[index]),
+      );
+    },
   );
 }
 
 Card DetailsOfTheDay(BuildContext context, WeatherData currentWeather) {
-  double cardHeight = MediaQuery.of(context).size.height / 9;
+  double cardHeight = MediaQuery.of(context).textScaler.scale(MediaQuery.of(context).size.height) / 9;
   return Card(
     elevation: 0,
     color: Colors.transparent,
@@ -90,9 +87,9 @@ Card DetailsOfTheDay(BuildContext context, WeatherData currentWeather) {
         //createSunriseSunset(currentWeather),
         Row(
           children: [
-            Expanded(child: SizedBox(height: cardHeight, child: createHumidity(currentWeather))),
-            Expanded(child: SizedBox(height: cardHeight, child: createWind(currentWeather))),
-            Expanded(child: SizedBox(height: cardHeight, child: createUVIndex(currentWeather))),
+            Flexible(fit: FlexFit.tight, child: SizedBox(height: cardHeight, child: createHumidity(currentWeather))),
+            Flexible(fit: FlexFit.tight, child: SizedBox(height: cardHeight, child: createWind(currentWeather))),
+            Flexible(fit: FlexFit.tight, child: SizedBox(height: cardHeight, child: createUVIndex(currentWeather))),
           ],
         ),
         createSunriseSunset(currentWeather),
@@ -101,7 +98,7 @@ Card DetailsOfTheDay(BuildContext context, WeatherData currentWeather) {
   );
 }
 
-Container AdMobBanner() {
+Container adMobBanner() {
   return Container(
     height: 50,
     width: 320,
