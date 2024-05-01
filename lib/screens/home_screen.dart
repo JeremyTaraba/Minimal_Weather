@@ -9,9 +9,10 @@ import '../services/constants.dart';
 import 'package:klimate/utilities/weather_data.dart';
 
 // included in next update
-// TODO: **Add localization for other languages (are we still using open weather? yes, just for geocoding) and be able to choose language
+// Not Doing (localization is a whole team thing): **Add localization for other languages (are we still using open weather? yes, just for geocoding) and be able to choose language
 // Done: Way to go back to original location when searching? would need to add logic to home_screen to know when searching
 // Done: Add military time in settings
+// Done: Add limit to how many manual look ups an hour
 // Done: Add error screen that has the froggy guy in it
 // Done: Different Error screens for different types of errors
 
