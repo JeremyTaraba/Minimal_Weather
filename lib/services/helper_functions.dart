@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import '../services/global_variables.dart';
-import 'weather_data.dart';
+import 'global_variables.dart';
+import '../utilities/weather_data.dart';
 import 'custom_icons.dart';
 
 String getLocalTime(int hour, int minutes) {
@@ -85,6 +86,20 @@ getTemperatureUnits() async {
   return 0;
 }
 
+setTwentyFourHourFormat() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  global_twentyFourHourFormat.value == 1 ? global_twentyFourHourFormat.value = 0 : global_twentyFourHourFormat.value = 1;
+  prefs.setBool("twentyFourHourFormat", global_twentyFourHourFormat.value == 1 ? true : false);
+}
+
+getTwentyFourHourFormat() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  if (prefs.getBool("twentyFourHourFormat") == true) {
+    return 1;
+  }
+  return 0;
+}
+
 double kelvinToCelsius(num temp) {
   double num = double.parse((temp - 273.15).toStringAsFixed(1));
   return num;
@@ -125,6 +140,31 @@ class _ConvertTempUnitsState extends State<ConvertTempUnits> {
         builder: (BuildContext context, int value, Widget? child) {
           return Text(
             "${convertUnitsIfNeedBe(widget.temp.toDouble())}°",
+            style: widget.textStyle,
+          );
+        });
+  }
+}
+
+class ConvertTimeUnits extends StatefulWidget {
+  ConvertTimeUnits({super.key, required this.hour, required this.minutes, this.textStyle = const TextStyle(color: Colors.black, fontSize: 16)});
+  final int hour;
+  final int minutes;
+  final TextStyle textStyle;
+  @override
+  State<ConvertTimeUnits> createState() => _ConvertTimeUnitsState();
+}
+
+class _ConvertTimeUnitsState extends State<ConvertTimeUnits> {
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+        valueListenable: global_twentyFourHourFormat,
+        builder: (BuildContext context, int value, Widget? child) {
+          return Text(
+            global_twentyFourHourFormat.value == 1
+                ? twentyFourHourToString(widget.hour, widget.minutes)
+                : getTimeWithAMPM(widget.hour, widget.minutes),
             style: widget.textStyle,
           );
         });
@@ -177,7 +217,13 @@ Future<void> sendLocationData(String cityName) async {
 }
 
 Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
-  HttpsCallable weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
+  HttpsCallable weatherCloudFunction;
+  if (kDebugMode) {
+    weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeatherDebug');
+  } else {
+    weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
+  }
+
   dynamic response;
   bool gotResponse = true;
   try {
@@ -187,13 +233,17 @@ Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
     });
   } on FirebaseFunctionsException catch (e) {
     // Do clever things with e
-    print(e);
+    if (kDebugMode) {
+      print(e);
+    }
     gotResponse = false;
     global_gotWeatherSuccessfully = false;
     global_errorMessage = "Error getting response cloud functions. $e";
   } catch (e) {
     // Do other things that might be thrown that I have overlooked
-    print(e);
+    if (kDebugMode) {
+      print(e);
+    }
     gotResponse = false;
     global_gotWeatherSuccessfully = false;
     global_errorMessage = "Error getting response cloud functions. $e";
@@ -204,7 +254,9 @@ Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
       if (response.data["error"] != "Error") {
         global_errorMessage = "No Error";
       } else {
-        print('Error getting response from url. ${response.data["error_info"]}');
+        if (kDebugMode) {
+          print('Error getting response from url. ${response.data["error_info"]}');
+        }
         global_gotWeatherSuccessfully = false;
         global_errorMessage = "Error getting response from url.  ${response.data["error_info"]}";
         return "Error";
@@ -213,7 +265,9 @@ Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
       return "Error";
     }
   } catch (e) {
-    print(e);
+    if (kDebugMode) {
+      print(e);
+    }
     global_gotWeatherSuccessfully = false;
     return "Error";
   }
@@ -233,8 +287,8 @@ Future<bool> isStoredLocation(String? city) async {
       final String? storedLocationTime = prefs.getString("storedLocationTime");
       if (storedLocationTime != null) {
         var parseDate = DateTime.parse(storedLocationTime);
-        var twelveHours = DateTime.now().subtract(const Duration(hours: 12));
-        if (parseDate.isAfter(twelveHours)) {
+        var timeDelayForRefresh = DateTime.now().subtract(const Duration(hours: 3));
+        if (parseDate.isAfter(timeDelayForRefresh)) {
           return true;
         } else {
           return false;
@@ -262,3 +316,84 @@ Future<WeatherData> getStoredLocation() async {
   }
   return storedLocation;
 }
+
+Future<bool> checkAndIncrementLookUpCounter() async {
+  if (kDebugMode) {
+    // no limit for debug mode
+    return true;
+  }
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  int? lookUpCounter = prefs.getInt("lookUpCounter");
+  if (lookUpCounter != null && lookUpCounter > 0) {
+    String? lookUpCounterTime = prefs.getString("lookUpCounterTime");
+    if (lookUpCounterTime != null) {
+      var parseDate = DateTime.parse(lookUpCounterTime);
+      var oneHour = DateTime.now().subtract(const Duration(hours: 1));
+      if (parseDate.isBefore(oneHour)) {
+        // first look up was more than an hour ago
+        prefs.setInt("lookUpCounter", 1);
+        prefs.setString("lookUpCounterTime", DateTime.now().toString());
+        return true;
+      } else {
+        // first look up was within the hour
+        if (lookUpCounter < 5) {
+          prefs.setInt("lookUpCounter", lookUpCounter + 1);
+          return true;
+        } else {
+          if (kDebugMode) {
+            print("reached lookUpCounter limit, wait an hour for reset");
+          }
+          return false;
+        }
+      }
+    }
+  } else {
+    prefs.setInt("lookUpCounter", 1);
+    prefs.setString("lookUpCounterTime", DateTime.now().toString());
+  }
+
+  return true;
+}
+
+void goToOriginalLocation(context) {
+  Navigator.of(context).pop();
+}
+
+String twentyFourHourToString(int hours, int minutes) {
+  if (minutes == 0) {
+    return hours < 10 ? "0$hours:00" : "$hours:00";
+  }
+  if (minutes < 10) {
+    return hours < 10 ? "0$hours:0$minutes" : "$hours:0$minutes";
+  }
+  return hours < 10 ? "0$hours:$minutes" : "$hours:$minutes";
+}
+
+// Custom ValueListenable but with 2 objects
+// class ValueListenableBuilder2<A, B> extends StatelessWidget {
+//   const ValueListenableBuilder2({
+//     required this.firstListenable,
+//     required this.secondListenable,
+//     super.key,
+//     required this.builder,
+//     this.child,
+//   });
+//
+//   final ValueListenable<A> firstListenable;
+//   final ValueListenable<B> secondListenable;
+//   final Widget? child;
+//   final Widget Function(BuildContext context, A a, B b, Widget? child) builder;
+//
+//   @override
+//   Widget build(BuildContext context) => ValueListenableBuilder<A>(
+//         valueListenable: firstListenable,
+//         builder: (_, a, __) {
+//           return ValueListenableBuilder<B>(
+//             valueListenable: secondListenable,
+//             builder: (context, b, __) {
+//               return builder(context, a, b, child);
+//             },
+//           );
+//         },
+//       );
+// }

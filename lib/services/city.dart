@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../services/keys.dart';
-import '../services/networking.dart';
+import 'keys.dart';
+import 'networking.dart';
 
 @immutable
 class City {

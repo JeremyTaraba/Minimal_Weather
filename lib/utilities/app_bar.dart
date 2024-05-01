@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:klimate/screens/loading_new_city.dart';
 import 'package:klimate/services/global_variables.dart';
-import 'package:klimate/utilities/city.dart';
-import 'package:klimate/utilities/helper_functions.dart';
+import 'package:klimate/services/city.dart';
+import 'package:klimate/services/helper_functions.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'constants.dart';
+import 'package:klimate/utilities/weather_data.dart';
+import '../services/constants.dart';
 
 class LocationAppBar extends StatefulWidget implements PreferredSizeWidget {
-  const LocationAppBar({super.key, required this.cityName});
+  const LocationAppBar({super.key, required this.cityName, required this.originalWeather, required this.isLookUp});
   final String? cityName;
+  final WeatherData originalWeather;
+  final bool isLookUp;
   @override
   State<LocationAppBar> createState() => _LocationAppBarState();
 
@@ -19,12 +22,22 @@ class LocationAppBar extends StatefulWidget implements PreferredSizeWidget {
 class _LocationAppBarState extends State<LocationAppBar> {
   TextEditingController textController = TextEditingController();
   String originalName = "";
+  late FocusNode myFocusNode;
 
   @override
   void initState() {
     super.initState();
     originalName = widget.cityName!;
     textController.text = originalName;
+    myFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the focus node when the Form is disposed.
+    myFocusNode.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -43,6 +56,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
                 borderRadius: BorderRadius.all(Radius.circular(30)),
               ),
               child: TypeAheadField<City>(
+                focusNode: myFocusNode,
                 controller: textController,
                 suggestionsCallback: allCities,
                 builder: (context, textController, focusNode) {
@@ -75,9 +89,37 @@ class _LocationAppBarState extends State<LocationAppBar> {
                   child: child,
                 ),
                 onSelected: (City value) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                    return LoadingNewCity(lat: value.lat, long: value.long, cityName: textController.text.trim());
-                  }));
+                  // push loading new city screen on top of home screen
+                  myFocusNode.unfocus();
+
+                  if (widget.isLookUp) {
+                    // if we already looked up a city, replace that city with a new one
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+                      return LoadingNewCity(
+                        lat: value.lat,
+                        long: value.long,
+                        cityName: textController.text.trim(),
+                        originalWeather: widget.originalWeather,
+                        originalCity: widget.cityName,
+                      );
+                    }));
+                  } else {
+                    // if this is the first time we are looking up a city
+                    String cityName = textController.text;
+                    setState(() {
+                      textController.text = originalName;
+                    });
+
+                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                      return LoadingNewCity(
+                        lat: value.lat,
+                        long: value.long,
+                        cityName: cityName.trim(),
+                        originalWeather: widget.originalWeather,
+                        originalCity: widget.cityName,
+                      );
+                    }));
+                  }
                 },
                 itemBuilder: (context, City location) => ListTile(
                   title: Text(location.city),
@@ -111,37 +153,34 @@ class _LocationAppBarState extends State<LocationAppBar> {
                 onTap: () {
                   setToCelsius();
                 },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 2.0),
-                      child: Icon(
-                        Icons.circle,
-                        size: 20,
-                        color: global_FahrenheitUnits.value == 1 ? Colors.white30 : Colors.green,
-                      ),
-                    ),
-                    const Text("Celsius"),
-                  ],
-                ),
+                child: popUpMenuTemperatures("Celsius", Colors.white30, Colors.green),
               ),
               PopupMenuItem<Widget>(
                 onTap: () {
                   setToFahrenheit();
                 },
+                child: popUpMenuTemperatures("Fahrenheit", Colors.green, Colors.white30),
+              ),
+              PopupMenuItem<Widget>(
+                onTap: () {
+                  setTwentyFourHourFormat();
+                },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 2.0),
-                      child: Icon(
-                        Icons.circle,
-                        size: 20,
-                        color: global_FahrenheitUnits.value == 1 ? Colors.green : Colors.white30,
+                    Transform.scale(
+                      scale: .7,
+                      alignment: Alignment.centerLeft,
+                      child: Switch(
+                        value: global_twentyFourHourFormat.value == 1 ? true : false,
+                        onChanged: (value) {
+                          setTwentyFourHourFormat();
+                          Navigator.pop(context);
+                        },
+                        activeColor: Colors.green,
                       ),
                     ),
-                    const Text("Fahrenheit"),
+                    const Text("24 hour format"),
                   ],
                 ),
               ),
@@ -153,4 +192,21 @@ class _LocationAppBarState extends State<LocationAppBar> {
       elevation: 0,
     );
   }
+}
+
+Row popUpMenuTemperatures(String units, Color isFahrenheit, Color isCelsius) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(right: 2.0),
+        child: Icon(
+          Icons.circle,
+          size: 20,
+          color: global_FahrenheitUnits.value == 1 ? isFahrenheit : isCelsius,
+        ),
+      ),
+      Text(units),
+    ],
+  );
 }

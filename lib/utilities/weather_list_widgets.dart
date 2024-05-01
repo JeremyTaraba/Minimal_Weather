@@ -1,12 +1,9 @@
 import 'package:expandable/expandable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:klimate/utilities/helper_functions.dart';
-
+import 'package:klimate/services/helper_functions.dart';
 import 'weather_data.dart';
-import 'constants.dart';
-import 'custom_icons.dart';
+import '../services/constants.dart';
+import '../services/custom_icons.dart';
 
 class WeatherTile {
   int twentyFourHour = 0;
@@ -22,10 +19,7 @@ class WeatherTile {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         Flexible(
-          child: Text(
-            getTimeWithAMPM(twentyFourHour, 0),
-            style: const TextStyle(color: Colors.black, fontSize: 16),
-          ),
+          child: ConvertTimeUnits(hour: twentyFourHour, minutes: 0),
         ),
         Flexible(
           child: Text(
@@ -284,8 +278,11 @@ Card createSunriseSunset(WeatherData currentWeather) {
                   color: Colors.orangeAccent,
                   size: 40,
                 ),
-                Text("${getLocalTime(currentWeather.sunrise.hour, currentWeather.sunrise.minute)} ${getAMPM(currentWeather.sunrise.hour)}",
-                    style: kSunsetSunriseStyle),
+                ConvertTimeUnits(
+                  hour: currentWeather.sunrise.hour,
+                  minutes: currentWeather.sunrise.minute,
+                  textStyle: kSunsetSunriseStyle,
+                ),
               ],
             ),
             const SizedBox(
@@ -302,10 +299,11 @@ Card createSunriseSunset(WeatherData currentWeather) {
                   color: Colors.blue,
                   size: 40,
                 ),
-                Text(
-                  "${getLocalTime(currentWeather.sunset.hour, currentWeather.sunset.minute)} ${getAMPM(currentWeather.sunset.hour)}",
-                  style: kSunsetSunriseStyle,
-                )
+                ConvertTimeUnits(
+                  hour: currentWeather.sunset.hour,
+                  minutes: currentWeather.sunset.minute,
+                  textStyle: kSunsetSunriseStyle,
+                ),
               ],
             ),
           ],

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:klimate/utilities/weather_data.dart';
 import 'package:klimate/utilities/weather_list_widgets.dart';
 
-DraggableScrollableSheet DraggableScollableWeatherDetails(List bottomWeatherList, BuildContext context) {
+DraggableScrollableSheet draggableScrollableWeatherDetails(List bottomWeatherList, BuildContext context) {
   return DraggableScrollableSheet(
     initialChildSize: MediaQuery.of(context).textScaler.scale(0.17),
     minChildSize: 0.17,
@@ -32,7 +32,7 @@ List createBottomWeatherList(BuildContext context, WeatherData currentWeather) {
   List bottomWeatherList = [
     scrollableWeatherTiles(context, currentWeather),
     sevenDayForecast(context, currentWeather),
-    DetailsOfTheDay(context, currentWeather),
+    detailsOfTheDay(context, currentWeather),
     //AdMobBanner() //ad space
   ];
 
@@ -77,7 +77,7 @@ Widget sevenDayForecast(BuildContext context, WeatherData currentWeather) {
   );
 }
 
-Card DetailsOfTheDay(BuildContext context, WeatherData currentWeather) {
+Card detailsOfTheDay(BuildContext context, WeatherData currentWeather) {
   double cardHeight = MediaQuery.of(context).textScaler.scale(MediaQuery.of(context).size.height) / 9;
   return Card(
     elevation: 0,

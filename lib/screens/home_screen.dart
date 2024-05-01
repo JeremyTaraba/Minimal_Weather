@@ -3,32 +3,26 @@ import 'package:klimate/screens/loading_new_city.dart';
 import 'package:klimate/services/global_variables.dart';
 import 'package:klimate/utilities/draggable_scrollable.dart';
 import 'package:klimate/utilities/app_bar.dart';
-import 'package:klimate/utilities/helper_functions.dart';
+import 'package:klimate/services/helper_functions.dart';
 import '../utilities/gradient_text.dart';
-import '../utilities/constants.dart';
+import '../services/constants.dart';
 import 'package:klimate/utilities/weather_data.dart';
 
-// These will be in the next update
-// Done: Added a way to refresh weather by pulling down
-// Done: Servers are slightly more stable, more fixes incoming
-// Done: changing system font size should no longer overflow any objects
-// Done: Fixed location name changing when looking up other cities
+// included in next update
+// TODO: **Add localization for other languages (are we still using open weather? yes, just for geocoding) and be able to choose language
+// Done: Way to go back to original location when searching? would need to add logic to home_screen to know when searching
+// Done: Add military time in settings
+// Done: Add error screen that has the froggy guy in it
+// Done: Different Error screens for different types of errors
 
-// Known Issues:
-// No way to change langauge
-// No option for military time in settings
-// when looking up locations, time is local time to you, not local time to the location
-// Servers have a limit to how many users it can handle
+// use geocoding from open weather and weather data from open meteo. geocoding needs api key, open meteo does not. No need for cloud functions
+// next update will add open meteo as the api. 10,000 free calls, no api key. might change refresh to 3 hour increments, need analytics
+// on use to see how requests we get daily and on average, can do this all on the backend with this api update.
 
+// TODO: Reload does not reload current location, it reloads original, fix it to check if current is same as original
 // TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen may need to add incentive like golden status or something, problem is how to check if user has subscribed or not when have no logins? use google play login?
 // TODO: Add notification for weather updates (government thingy) and for tomorrows weather
-// TODO: Add localization for other languages and be able to choose language
-// TODO: Way to go back to original location when searching? would need to add logic to homescreen to know when searching
-// TODO: Add military time in settings
-// TODO: Some users lookup 20+ different locations, add a limit to how many location lookups per user: 5 per hour seems reasonable
-// ^ also if we save last 3 lookups then those don't count towards the 7 per hour (maybe save last 7 lookup?) so can still "look" those up
-
-// TODO: If account is disabled, make it so cant use cloud functions
+// TODO: If account is disabled, make it so can't use app, need a better way to identify user so can shadow ban them. also limit firebase read and writes per day incase of abuse
 // TODO: Going back on loading screen should do something when it takes forever to load
 // TODO: Searching for new city only shows some of the cities by name not all of them
 // TODO: Time is not local city time when doing manual look up, it is your own local time
@@ -37,14 +31,17 @@ import 'package:klimate/utilities/weather_data.dart';
 // TODO: check firebase database to see if city already exists in last 12 hours, if not then lookup and add to database
 // TODO: sometimes it takes a really long time to load when installing for first time, make app reset after long time
 
-// TODO: Should add tests if every updating this after it goes into production, don't want to unknowing break things by adding 1 small feature
-
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.locationWeather, required this.cityName});
+  const HomeScreen({
+    super.key,
+    required this.locationWeather,
+    required this.cityName,
+    this.isLookUp = false,
+  });
 
   final WeatherData locationWeather;
   final String? cityName; // sending city name separate because it might be different for geocoding and openweather when using manual lookup
-
+  final bool isLookUp;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -88,6 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: Colors.transparent,
             appBar: LocationAppBar(
               cityName: widget.cityName,
+              originalWeather: widget.locationWeather,
+              isLookUp: widget.isLookUp,
             ),
             body: ValueListenableBuilder(
               valueListenable: global_FahrenheitUnits,
@@ -133,16 +132,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              child: Container(),
-                            ),
-                          )
+                          extraSizeForOnRefresh(),
+                          extraSizeForOnRefresh(),
+                          extraSizeForOnRefresh(),
                         ],
                       ),
                     ),
-                    DraggableScollableWeatherDetails(bottomWeatherList, context),
+                    widget.isLookUp ? homeButton() : const SizedBox(),
+                    draggableScrollableWeatherDetails(bottomWeatherList, context),
                   ],
                 );
               },
@@ -154,8 +151,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _pullRefresh() async {
+    // if reloading current city then push replacement
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-      return LoadingNewCity(lat: widget.locationWeather.lat, long: widget.locationWeather.long, cityName: widget.cityName);
+      return LoadingNewCity(
+        lat: widget.locationWeather.lat,
+        long: widget.locationWeather.long,
+        cityName: widget.cityName,
+        originalWeather: widget.locationWeather,
+        originalCity: widget.cityName,
+      );
     }));
+  }
+
+  Widget extraSizeForOnRefresh() {
+    return Expanded(
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Container(),
+      ),
+    );
+  }
+
+  Widget homeButton() {
+    return Positioned(
+      // home button
+      top: 0.0,
+      left: 0.0,
+      child: IconButton(
+        onPressed: () {
+          goToOriginalLocation(context);
+        },
+        icon: const Icon(
+          Icons.home,
+          size: 40,
+          color: Colors.white,
+        ),
+      ),
+    );
   }
 }

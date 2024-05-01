@@ -1,4 +1,5 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:klimate/screens/home_screen.dart';
@@ -8,7 +9,7 @@ import 'package:klimate/utilities/weather_data.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:klimate/services/location.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../utilities/helper_functions.dart';
+import '../services/helper_functions.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 
 class LoadingScreen extends StatefulWidget {
@@ -31,15 +32,21 @@ class _LoadingScreenState extends State<LoadingScreen> {
   Future<bool> checkIfLocationOn() async {
     if (await Permission.location.serviceStatus.isEnabled) {
       //permission is enabled
-      print("Permission enabled");
+      if (kDebugMode) {
+        print("Permission enabled");
+      }
       var status = await Permission.location.status;
       if (status.isGranted) {
         //location permission is granted
-        print("Permission granted");
+        if (kDebugMode) {
+          print("Permission granted");
+        }
         getLocationData();
       } else {
         //location permission is not granted
-        print("Permission not granted");
+        if (kDebugMode) {
+          print("Permission not granted");
+        }
         Map<Permission, PermissionStatus> status = await [
           Permission.location,
         ].request();
@@ -50,7 +57,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
         Permission.location,
       ].request();
       //permission is not enabled
-      print("Permission not enabled");
+      if (kDebugMode) {
+        print("Permission not enabled");
+      }
     }
     if (await Permission.location.isPermanentlyDenied) {
       openAppSettings();
@@ -59,6 +68,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
   }
 
   void getLocationData() async {
+    //updating global units from saved settings
+    global_FahrenheitUnits.value = await getTemperatureUnits();
+    global_twentyFourHourFormat.value = await getTwentyFourHourFormat();
     Location currentLocation = Location();
     await currentLocation.getCurrentLocation();
     WeatherData weatherData = WeatherData();
@@ -70,22 +82,26 @@ class _LoadingScreenState extends State<LoadingScreen> {
       if (geocodingLocation[0].locality != "") {
         currentCity = geocodingLocation[0].locality;
       } else {
-        print("null locality, defaulting to country");
+        if (kDebugMode) {
+          print("null locality, defaulting to country");
+        }
         if (geocodingLocation[0].country != "") {
           geocodingCityFailed = true;
           currentCity = geocodingLocation[0].country;
         }
       }
     } catch (e) {
-      print(e);
+      if (kDebugMode) {
+        print(e);
+      }
       FirebaseCrashlytics.instance.recordError("Error Geocoding: \n $e", StackTrace.current);
     }
 
     if (currentCity == "") {
       // geocoding failed, throw error screen
       global_errorMessage = "Geocoding failed, country was also null";
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return const ErrorScreen();
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+        return const ErrorScreen(errorCode: 400); // could not find location
       }));
     }
 
@@ -106,8 +122,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
       // look up new location
       var response = await cloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude);
       if (!global_gotWeatherSuccessfully) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return const ErrorScreen();
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+          return const ErrorScreen(errorCode: 503); // server is too full
         }));
       } else {
         //want to store this information into 1 weather object
@@ -119,25 +135,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
           setStoredLocation(currentCity, weatherData);
         }
 
-        //updating temp units from saved settings
-        global_FahrenheitUnits.value = await getTemperatureUnits();
-
         //send location to firebase for analytics
-        try {
-          final userCredential = await FirebaseAuth.instance.signInAnonymously();
-          global_userID = userCredential.user?.uid;
-          print("Signed in with temporary account.");
-        } on FirebaseAuthException catch (e) {
-          switch (e.code) {
-            case "operation-not-allowed":
-              global_errorMessage = "Anonymous auth hasn't been enabled for this project.";
-              break;
-            default:
-              global_errorMessage = "Unknown error with FirebaseAuth.";
-          }
-        }
-
-        await sendLocationData(weatherData.cityName);
+        _sendLocationToFirebase(weatherData);
 
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return HomeScreen(
@@ -145,6 +144,25 @@ class _LoadingScreenState extends State<LoadingScreen> {
             cityName: weatherData.cityName,
           );
         }));
+      }
+    }
+  }
+
+  Future<void> _sendLocationToFirebase(WeatherData weatherData) async {
+    try {
+      final userCredential = await FirebaseAuth.instance.signInAnonymously();
+      global_userID = userCredential.user?.uid;
+      if (kDebugMode) {
+        print("Signed in with temporary account.");
+      }
+      await sendLocationData(weatherData.cityName);
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case "operation-not-allowed":
+          global_errorMessage = "Anonymous auth hasn't been enabled for this project.";
+          break;
+        default:
+          global_errorMessage = "Unknown error with FirebaseAuth.";
       }
     }
   }

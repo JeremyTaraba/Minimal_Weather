@@ -42,6 +42,11 @@ LinearGradient kTempGradient = const LinearGradient(
   ],
 );
 
+const TextStyle kErrorScreenTextStyleBlue = TextStyle(
+  fontSize: 16,
+  color: Colors.blue,
+);
+
 // not using anything under here
 const TextStyle kWeatherTextStyle = TextStyle(
   fontSize: 50,
