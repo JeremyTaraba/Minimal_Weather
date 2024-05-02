@@ -43,13 +43,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
         }
         getLocationData();
       } else {
-        //location permission is not granted
+        //location permission is not granted, this is where approximate location goes
         if (kDebugMode) {
           print("Permission not granted");
         }
-        Map<Permission, PermissionStatus> status = await [
-          Permission.location,
-        ].request();
+
         getLocationData();
       }
     } else {
@@ -99,6 +97,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
     if (currentCity == "") {
       // geocoding failed, throw error screen
+      if (kDebugMode) {
+        print("Geocoding failed, country was also null");
+      }
       global_errorMessage = "Geocoding failed, country was also null";
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
         return const ErrorScreen(errorCode: 400); // could not find location
@@ -122,6 +123,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
       // look up new location
       var response = await cloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude);
       if (!global_gotWeatherSuccessfully) {
+        if (kDebugMode) {
+          print("Did not get weather successfully");
+        }
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
           return const ErrorScreen(errorCode: 503); // server is too full
         }));

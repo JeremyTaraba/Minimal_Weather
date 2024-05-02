@@ -8,27 +8,23 @@ import '../utilities/gradient_text.dart';
 import '../services/constants.dart';
 import 'package:klimate/utilities/weather_data.dart';
 
-// included in next update
-// Not Doing (localization is a whole team thing): **Add localization for other languages (are we still using open weather? yes, just for geocoding) and be able to choose language
-// Done: Way to go back to original location when searching? would need to add logic to home_screen to know when searching
-// Done: Add military time in settings
-// Done: Add limit to how many manual look ups an hour
-// Done: Add error screen that has the froggy guy in it
-// Done: Different Error screens for different types of errors
+// Next Update:
+// TODO: Reload does not reload current location, it reloads original, fix it to check if current is same as original
+// TODO: Make it so checking if stored city is saved will be more precise, ie: city name + state/country not just city name
+// TODO: make it so when doing a manual lookup, save that lookup somewhere just like saving the original location
+// TODO: Add new API using open meteo
+// TODO: Count how many calls are being made a day on firebase and stop all calls if goes above 9,999 (10k limit)
+// TODO: If account is disabled, make it so can't use app, need a better way to identify user so can shadow ban them. also limit firebase read and writes per day incase of abuse
 
 // use geocoding from open weather and weather data from open meteo. geocoding needs api key, open meteo does not. No need for cloud functions
 // next update will add open meteo as the api. 10,000 free calls, no api key. might change refresh to 3 hour increments, need analytics
 // on use to see how requests we get daily and on average, can do this all on the backend with this api update.
 
-// TODO: Reload does not reload current location, it reloads original, fix it to check if current is same as original
 // TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen may need to add incentive like golden status or something, problem is how to check if user has subscribed or not when have no logins? use google play login?
 // TODO: Add notification for weather updates (government thingy) and for tomorrows weather
-// TODO: If account is disabled, make it so can't use app, need a better way to identify user so can shadow ban them. also limit firebase read and writes per day incase of abuse
 // TODO: Going back on loading screen should do something when it takes forever to load
-// TODO: Searching for new city only shows some of the cities by name not all of them
+// TODO: Searching for new city only shows some of the cities by name not all of them, should be able to search by country too
 // TODO: Time is not local city time when doing manual look up, it is your own local time
-// TODO: Make it so checking if stored city is saved will be more precise, ie: city name + state/country not just city name
-// TODO: make it so when doing a manual lookup, save that lookup somewhere just like saving the original location
 // TODO: check firebase database to see if city already exists in last 12 hours, if not then lookup and add to database
 // TODO: sometimes it takes a really long time to load when installing for first time, make app reset after long time
 

@@ -210,10 +210,11 @@ Icon getWeatherIcon(String iconNumber, double size, String description) {
 }
 
 Future<void> sendLocationData(String cityName) async {
-  // wont need this anymore, can replace this with apikey number when implement second api
-  final user = <String, String>{DateTime.now().toString(): cityName};
+  final data = <String, String>{DateTime.now().toString(): cityName};
   FirebaseFirestore firestore = FirebaseFirestore.instance;
-  await firestore.collection("location").doc(global_userID).set(user, SetOptions(merge: true));
+  await firestore.collection("location").doc(global_userID).set(data, SetOptions(merge: true));
+  var cityHits = await firestore.collection("cities").doc(DateTime.now().toString().split(" ")[0]);
+  cityHits.update({cityName: FieldValue.increment(1)});
 }
 
 Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
