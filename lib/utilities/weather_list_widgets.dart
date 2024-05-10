@@ -10,9 +10,9 @@ class WeatherTile {
   String icon = "";
   num temp = 0;
   String description = "";
-  String main = "";
-  num pop = 0;
-  WeatherTile(this.twentyFourHour, this.icon, this.temp, this.description, this.main, this.pop);
+  String ifRain = "";
+  num chanceOfRain = 0;
+  WeatherTile(this.twentyFourHour, this.icon, this.temp, this.description, this.ifRain, this.chanceOfRain);
 
   Column _generateTile(int tileNumber) {
     return Column(
@@ -23,7 +23,7 @@ class WeatherTile {
         ),
         Flexible(
           child: Text(
-            main == "Rain" ? "${(pop * 100).toInt()}%" : "",
+            ifRain == "Rain" ? "${(chanceOfRain * 100).toInt()}%" : "",
             style: const TextStyle(color: Colors.blue, fontSize: 16),
           ),
         ),
@@ -40,8 +40,16 @@ class WeatherTile {
 }
 
 List createWeatherTiles(WeatherData currentWeather) {
+  if (currentWeather.apiUsed == "openmeteo") {
+    return createWeatherTilesOpenMeteo(currentWeather);
+  } else {
+    return createWeatherTilesOpenWeather(currentWeather);
+  }
+}
+
+List createWeatherTilesOpenWeather(WeatherData currentWeather) {
   List weatherTiles = [];
-  var hourly = currentWeather.hourly;
+  var hourly = currentWeather.hourlyTemperatures;
 
   // this block is to check how long it has been since last got the time. Need it since we save the weather for 12 hours to reduce fetch requests
   int hourlyGetTimeInt = hourly[0]["dt"];
@@ -62,7 +70,44 @@ List createWeatherTiles(WeatherData currentWeather) {
   return weatherTiles;
 }
 
-List createWeatherTilesFiveDays(List forecastList) {
+List createWeatherTilesOpenMeteo(WeatherData currentWeather) {
+  List weatherTiles = [];
+
+  // this block is to check how long it has been since last got the time. And shifts the hours
+  int hourlyGetTimeInt = currentWeather.hourlyTime[0];
+  var hourlyGetTimeDate = DateTime.fromMillisecondsSinceEpoch(hourlyGetTimeInt * 1000);
+  var timeDifference = DateTime.now().difference(hourlyGetTimeDate);
+  int startIndex = 0 + timeDifference.inHours;
+  int endIndex = 24 + timeDifference.inHours;
+  // end block
+
+  int condition = 0;
+  for (int i = startIndex; i < endIndex; i++) {
+    int epochTime = currentWeather.hourlyTime[i];
+    var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
+    condition = currentWeather.hourlyCodes[i];
+    WeatherTile temp = WeatherTile(
+      date.hour,
+      getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, false),
+      currentWeather.hourlyTemperatures[i],
+      getDescriptionFromCondition(condition),
+      currentWeather.hourlyPrecipitation[i] > 0 ? "Rain" : "",
+      currentWeather.hourlyPrecipitation[i] / 100,
+    );
+    weatherTiles.add(temp._generateTile(i));
+  }
+  return weatherTiles;
+}
+
+List createWeatherTilesFiveDays(List forecastList, WeatherData currentWeather) {
+  if (currentWeather.apiUsed == "openmeteo") {
+    return createWeatherTilesOpenMeteo(currentWeather);
+  } else {
+    return createWeatherTilesFiveDaysOpenWeather(forecastList);
+  }
+}
+
+List createWeatherTilesFiveDaysOpenWeather(List forecastList) {
   List weatherTiles = [];
   Widget blank = const SizedBox(
     width: 10,
@@ -80,26 +125,51 @@ List createWeatherTilesFiveDays(List forecastList) {
   return weatherTiles;
 }
 
+List createWeatherTilesFiveDaysOpenMeteo(WeatherData currentWeather) {
+  List weatherTiles = [];
+  Widget blank = const SizedBox(
+    width: 10,
+  );
+  int condition = 0;
+
+  for (int i = 0; i < 23; i++) {
+    int epochTime = currentWeather.hourlyTime[i];
+    var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
+    condition = currentWeather.hourlyCodes[getHourlyTimeGivenTime(currentWeather.hourlyTime, date)];
+    WeatherTile temp = WeatherTile(
+      date.hour,
+      getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, false),
+      getHourlyTemperatureCurrent(currentWeather.hourlyTemperatures, currentWeather.hourlyTime),
+      getDescriptionFromCondition(condition),
+      currentWeather.hourlyPrecipitation[i] > 0 ? "Rain" : "",
+      currentWeather.hourlyPrecipitation[i] / 100,
+    );
+    weatherTiles.add(temp._generateTile(i));
+    weatherTiles.add(blank);
+  }
+  return weatherTiles;
+}
+
 Widget scrollableWeatherFiveDays(int index, WeatherData currentWeather, BuildContext context) {
-  //index tells us which day it is. 0 - 4, 0 being today and 1 being the next day
-  //can use this to filter through the list of forecasts for the appropriate day
-  // create a list to send to weatherTilesFiveDays which is just the time we need
-
-  var now = DateTime.now();
-  now = now.add(Duration(days: index));
   List forecastList = [];
+  if (currentWeather.apiUsed == "openweather") {
+    //index tells us which day it is. 0 - 4, 0 being today and 1 being the next day
+    //can use this to filter through the list of forecasts for the appropriate day
+    // create a list to send to weatherTilesFiveDays which is just the time we need
+    var now = DateTime.now();
+    now = now.add(Duration(days: index));
+    List forecastWeather = currentWeather.forecastList;
 
-  List forecastWeather = currentWeather.forecastList;
-
-  for (int i = 0; i < forecastWeather.length; i++) {
-    DateTime localTime =
-        DateTime.parse(forecastWeather[i]["dt_txt"] + " Z").toLocal(); // Z is for utc which is needs to be in for converting to local
-    if (localTime.toString().split(' ')[0] == now.toString().split(' ')[0]) {
-      forecastList.add(forecastWeather[i]);
+    for (int i = 0; i < forecastWeather.length; i++) {
+      DateTime localTime =
+          DateTime.parse(forecastWeather[i]["dt_txt"] + " Z").toLocal(); // Z is for utc which is needs to be in for converting to local
+      if (localTime.toString().split(' ')[0] == now.toString().split(' ')[0]) {
+        forecastList.add(forecastWeather[i]);
+      }
     }
   }
 
-  List hourlyWeatherTile = createWeatherTilesFiveDays(forecastList);
+  List hourlyWeatherTile = createWeatherTilesFiveDays(forecastList, currentWeather);
   return SizedBox(
     height: MediaQuery.of(context).textScaler.scale(MediaQuery.of(context).size.width) / 3.5,
     child: ListView.builder(
@@ -128,7 +198,7 @@ class WeatherBanner {
   WeatherBanner(this.weekDay, this.icon, this.minTemp, this.maxTemp, this.description, this.index);
 
   Widget _generateBanner(WeatherData currentWeather, BuildContext context) {
-    if (0 < index && index < 5) {
+    if ((0 < index && index < 5) || (currentWeather.apiUsed == "openmeteo" && index != 0)) {
       ExpandableController controller = ExpandableController();
       return ExpandableNotifier(
         controller: controller,
@@ -239,20 +309,38 @@ class WeatherBanner {
 List createWeatherBanners(WeatherData currentWeather, BuildContext context) {
   List weatherBanners = [];
 
-  var daily = currentWeather.daily;
+  int condition = 0;
+  if (currentWeather.apiUsed == "openmeteo") {
+    for (int i = 0; i < 7; i++) {
+      int epochTime = currentWeather.hourlyTime[i * 24];
+      var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
 
-  for (int i = 0; i < daily.length; i++) {
-    int epochTime = daily[i]["dt"];
-    var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
-    WeatherBanner temp = WeatherBanner(
-      i == 0 ? 0 : date.weekday,
-      daily[i]["weather"][0]["icon"],
-      daily[i]["temp"]["min"],
-      daily[i]["temp"]["max"],
-      daily[i]["weather"][0]["description"],
-      i,
-    );
-    weatherBanners.add(temp._generateBanner(currentWeather, context));
+      condition = getMedianCondition(currentWeather.hourlyCodes, i * 24, (i + 1) * 24);
+      WeatherBanner temp = WeatherBanner(
+        i == 0 ? 0 : date.weekday,
+        getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, true),
+        getMinTemps(currentWeather.hourlyTemperatures, i * 24, (i + 1) * 24),
+        getMaxTemps(currentWeather.hourlyTemperatures, i * 24, (i + 1) * 24),
+        getDescriptionFromCondition(condition),
+        i,
+      );
+      weatherBanners.add(temp._generateBanner(currentWeather, context));
+    }
+  } else {
+    var daily = currentWeather.daily;
+    for (int i = 0; i < daily.length; i++) {
+      int epochTime = daily[i]["dt"];
+      var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
+      WeatherBanner temp = WeatherBanner(
+        i == 0 ? 0 : date.weekday,
+        daily[i]["weather"][0]["icon"],
+        daily[i]["temp"]["min"],
+        daily[i]["temp"]["max"],
+        daily[i]["weather"][0]["description"],
+        i,
+      );
+      weatherBanners.add(temp._generateBanner(currentWeather, context));
+    }
   }
   return weatherBanners;
 }

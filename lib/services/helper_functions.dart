@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'global_variables.dart';
 import '../utilities/weather_data.dart';
 import 'custom_icons.dart';
+import 'networking.dart';
 
 String getLocalTime(int hour, int minutes) {
   String time = "";
@@ -100,21 +101,21 @@ getTwentyFourHourFormat() async {
   return 0;
 }
 
-double kelvinToCelsius(num temp) {
-  double num = double.parse((temp - 273.15).toStringAsFixed(1));
+double getCelsius(num temp) {
+  double num = double.parse(temp.toStringAsFixed(1));
   return num;
 }
 
-int kelvinToFahrenheit(num temp) {
-  double num = double.parse((((temp - 273.15) * 9 / 5) + 32).toStringAsFixed(0));
+int celsiusToFahrenheit(num temp) {
+  double num = double.parse(((temp * 9 / 5) + 32).toStringAsFixed(0));
   return num.toInt();
 }
 
 num convertUnitsIfNeedBe(num temp) {
   if (global_FahrenheitUnits.value == 1) {
-    return kelvinToFahrenheit(temp);
+    return celsiusToFahrenheit(temp);
   }
-  return kelvinToCelsius(temp);
+  return getCelsius(temp);
 }
 
 String metersSecondToMph(double mph) {
@@ -191,7 +192,7 @@ Icon getWeatherIcon(String iconNumber, double size, String description) {
     case "09d":
     case "10d":
     case "10n":
-      if (description == "light rain") {
+      if (description.toLowerCase() == "light rain") {
         return Icon(WeatherIcons.drizzle, size: size, color: Colors.blue[300]);
       }
       return Icon(WeatherIcons.rain, size: size, color: Colors.indigo);
@@ -207,6 +208,16 @@ Icon getWeatherIcon(String iconNumber, double size, String description) {
     default:
       return Icon(WeatherIcons.sun, size: size, color: Colors.orange[600]);
   }
+}
+
+bool isAfterSunsetBeforeSunrise(DateTime sunset, DateTime time, DateTime sunrise) {
+  if (time.hour <= sunrise.hour) {
+    return true;
+  }
+  if (time.hour >= sunset.hour) {
+    return true;
+  }
+  return false;
 }
 
 Future<void> sendLocationData(String cityName) async {
@@ -368,6 +379,363 @@ String twentyFourHourToString(int hours, int minutes) {
     return hours < 10 ? "0$hours:0$minutes" : "$hours:0$minutes";
   }
   return hours < 10 ? "0$hours:$minutes" : "$hours:$minutes";
+}
+
+Future<dynamic> getWeatherFromOpenMeteo(double lat, double long) async {
+  var openMeteo = NetworkHelper(global_apiKey);
+  var data = await openMeteo.getData();
+  return data;
+}
+
+int getHourlyTimeGivenTime(List<dynamic> timeList, DateTime time) {
+  for (int i = 0; i < timeList.length; i++) {
+    if (DateUtils.isSameDay(time, DateTime.fromMillisecondsSinceEpoch(timeList[i] * 1000))) {
+      if (time.hour == DateTime.fromMillisecondsSinceEpoch(timeList[i] * 1000).hour) {
+        return i;
+      }
+    }
+  }
+
+  return -1;
+}
+
+int getMedianCondition(List<dynamic> hourlyCodes, int startIndex, int endIndex) {
+  //TODO: change it so it gets median description since night-clear == day-clear == clear
+  Map<int, int> dictConditions = {};
+  for (int i = startIndex; i < endIndex; i++) {
+    dictConditions.update(hourlyCodes[i], (value) => value++, ifAbsent: () => 0);
+  }
+  int maxValue = 0;
+  int maxKey = 0;
+  dictConditions.forEach((key, value) {
+    if (value > maxValue) {
+      maxValue = value;
+      maxKey = key;
+    }
+  });
+  return maxKey;
+}
+
+num getMinTemps(List<dynamic> temps, int startIndex, int endIndex) {
+  num minTemp = temps[startIndex];
+  for (int i = startIndex; i < endIndex; i++) {
+    if (minTemp > temps[i]) {
+      minTemp = temps[i];
+    }
+  }
+  return minTemp;
+}
+
+num getMaxTemps(List<dynamic> temps, int startIndex, int endIndex) {
+  num maxTemp = temps[startIndex];
+  for (int i = startIndex; i < endIndex; i++) {
+    if (maxTemp < temps[i]) {
+      maxTemp = temps[i];
+    }
+  }
+  return maxTemp;
+}
+
+int getHourlyTemperatureCurrent(var temperatureList, var timeList) {
+  // need to get current time and check it with time list, the index they meet up is the index the temp we give them
+  int index = getHourlyTimeGivenTime(timeList, DateTime.now());
+  return temperatureList[index];
+}
+
+int getOpenWeatherConditionNumberFromCondition(int condition) {
+  if (condition == 0) {
+    return 800;
+  }
+  if (condition <= 2) {
+    return 802;
+  }
+  if (condition == 3) {
+    return 804;
+  }
+  if (condition <= 5) {
+    return 721;
+  }
+  if (condition <= 9) {
+    return 731;
+  }
+  if (condition == 10) {
+    return 701;
+  }
+  if (condition <= 12) {
+    return 741;
+  }
+  if (condition == 13) {
+    return 211;
+  }
+  if (condition <= 16) {
+    return 300;
+  }
+  if (condition == 17) {
+    return 211;
+  }
+  if (condition <= 19) {
+    return 771;
+  }
+  if (condition == 20) {
+    return 301;
+  }
+  if (condition == 21) {
+    return 501;
+  }
+
+  if (condition <= 24) {
+    return 601;
+  }
+  if (condition == 25) {
+    return 502;
+  }
+  if (condition <= 27) {
+    return 602;
+  }
+  if (condition == 28) {
+    return 741;
+  }
+  if (condition == 29) {
+    return 211;
+  }
+  if (condition <= 35) {
+    return 731;
+  }
+  if (condition <= 39) {
+    return 601;
+  }
+  if (condition <= 49) {
+    return 741;
+  }
+  if (condition <= 59) {
+    return 301;
+  }
+  if (condition <= 69) {
+    return 501;
+  }
+  if (condition <= 75) {
+    return 601;
+  }
+  if (condition <= 79) {
+    return 611;
+  }
+  if (condition <= 84) {
+    return 521;
+  }
+  if (condition <= 88) {
+    return 602;
+  }
+  if (condition <= 90) {
+    return 611;
+  }
+  if (condition == 91) {
+    return 500;
+  }
+  if (condition == 92) {
+    return 503;
+  }
+  if (condition <= 94) {
+    return 601;
+  }
+  if (condition <= 99) {
+    return 200;
+  }
+  return 900; // error
+}
+
+String getDescriptionFromCondition(int condition) {
+  if (condition == 0) {
+    return "Clear Sky";
+  }
+  if (condition <= 2) {
+    return "Few Clouds";
+  }
+  if (condition == 3) {
+    return "Cloudy";
+  }
+  if (condition <= 5) {
+    return "Haze";
+  }
+  if (condition <= 9) {
+    return "Dusty";
+  }
+  if (condition == 10) {
+    return "Misty";
+  }
+  if (condition <= 12) {
+    return "Foggy";
+  }
+  if (condition == 13) {
+    return "Lightning";
+  }
+  if (condition <= 16) {
+    return "Precipitation";
+  }
+  if (condition == 17) {
+    return "Thunderstorm";
+  }
+  if (condition <= 19) {
+    return "Squalls";
+  }
+  if (condition == 20) {
+    return "Drizzle";
+  }
+  if (condition == 21) {
+    return "Rain";
+  }
+  if (condition == 22) {
+    return "Snow";
+  }
+  if (condition <= 24) {
+    return "Snow Pellets";
+  }
+  if (condition == 25) {
+    return "Heavy Rain";
+  }
+  if (condition <= 27) {
+    return "Heavy Snow";
+  }
+  if (condition == 28) {
+    return "Fog";
+  }
+  if (condition == 29) {
+    return "Thunderstorm";
+  }
+  if (condition <= 35) {
+    return "Dust Storm";
+  }
+  if (condition <= 39) {
+    return "Blowing Snow";
+  }
+  if (condition <= 49) {
+    return "Foggy";
+  }
+  if (condition <= 59) {
+    return "Drizzle";
+  }
+  if (condition <= 69) {
+    return "Rain";
+  }
+  if (condition <= 75) {
+    return "Snowflakes";
+  }
+  if (condition <= 79) {
+    return "Ice Pellets";
+  }
+  if (condition <= 84) {
+    return "Rain Showers";
+  }
+  if (condition <= 88) {
+    return "Snow Showers";
+  }
+  if (condition <= 90) {
+    return "Hail Showers";
+  }
+  if (condition == 91) {
+    return "Light Rain";
+  }
+  if (condition == 92) {
+    return "Heavy Rain";
+  }
+  if (condition <= 94) {
+    return "Snow";
+  }
+  if (condition <= 99) {
+    return "Thunderstorm";
+  }
+  return "";
+}
+
+String getOpenWeatherIconFromCondition(int condition, DateTime sunset, DateTime time, DateTime sunrise, bool ignoreNight) {
+  bool isNight = isAfterSunsetBeforeSunrise(sunset, time, sunrise);
+  if (condition == 0) {
+    if (isNight && !ignoreNight) {
+      return "01n";
+    }
+    return "01d";
+  }
+  if (condition <= 2) {
+    if (isNight && !ignoreNight) {
+      return "02n";
+    }
+    return "02d";
+  }
+  if (condition == 3) {
+    if (isNight && !ignoreNight) {
+      return "04n";
+    }
+    return "04d";
+  }
+  if (condition <= 12) {
+    return "50d";
+  }
+  if (condition == 13) {
+    return "11d";
+  }
+  if (condition <= 16) {
+    return "09d";
+  }
+  if (condition == 17) {
+    return "11d";
+  }
+  if (condition <= 19) {
+    return "50d";
+  }
+  if (condition == 20) {
+    return "09d";
+  }
+  if (condition == 21) {
+    return "10d";
+  }
+  if (condition <= 24) {
+    return "13d";
+  }
+  if (condition == 25) {
+    return "10d";
+  }
+  if (condition <= 27) {
+    return "13d";
+  }
+  if (condition == 28) {
+    return "50d";
+  }
+  if (condition == 29) {
+    return "11d";
+  }
+  if (condition <= 35) {
+    return "50d";
+  }
+  if (condition <= 39) {
+    return "13d";
+  }
+  if (condition <= 49) {
+    return "50d";
+  }
+  if (condition <= 59) {
+    return "09d";
+  }
+  if (condition <= 69) {
+    return "10d";
+  }
+  if (condition <= 79) {
+    return "13d";
+  }
+  if (condition <= 84) {
+    return "10d";
+  }
+  if (condition <= 90) {
+    return "13d";
+  }
+  if (condition == 92) {
+    return "10d";
+  }
+  if (condition <= 94) {
+    return "13d";
+  }
+  if (condition <= 99) {
+    return "11d";
+  }
+  return "";
 }
 
 // Custom ValueListenable but with 2 objects

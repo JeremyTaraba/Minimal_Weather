@@ -10,15 +10,13 @@ import 'package:klimate/utilities/weather_data.dart';
 
 // Next Update:
 // TODO: Reload does not reload current location, it reloads original, fix it to check if current is same as original
+// TODO: **Add new API using open meteo <- done. need to make it work using lookup and saving it
+// TODO: **Count how many calls are being made a day on firebase and stop all calls if goes above 9,999 (10k limit)
+// TODO: **Default to openmeteo unless reached max calls for the day then use open weather
+
+// TODO: If account is disabled, make it so can't use app, need a better way to identify user so can shadow ban them. also limit firebase read and writes per day incase of abuse
 // TODO: Make it so checking if stored city is saved will be more precise, ie: city name + state/country not just city name
 // TODO: make it so when doing a manual lookup, save that lookup somewhere just like saving the original location
-// TODO: Add new API using open meteo
-// TODO: Count how many calls are being made a day on firebase and stop all calls if goes above 9,999 (10k limit)
-// TODO: If account is disabled, make it so can't use app, need a better way to identify user so can shadow ban them. also limit firebase read and writes per day incase of abuse
-
-// use geocoding from open weather and weather data from open meteo. geocoding needs api key, open meteo does not. No need for cloud functions
-// next update will add open meteo as the api. 10,000 free calls, no api key. might change refresh to 3 hour increments, need analytics
-// on use to see how requests we get daily and on average, can do this all on the backend with this api update.
 
 // TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen may need to add incentive like golden status or something, problem is how to check if user has subscribed or not when have no logins? use google play login?
 // TODO: Add notification for weather updates (government thingy) and for tomorrows weather
@@ -27,6 +25,8 @@ import 'package:klimate/utilities/weather_data.dart';
 // TODO: Time is not local city time when doing manual look up, it is your own local time
 // TODO: check firebase database to see if city already exists in last 12 hours, if not then lookup and add to database
 // TODO: sometimes it takes a really long time to load when installing for first time, make app reset after long time
+// TODO: Setting/saving locations so can look up fast
+// TODO: limit countries froggy can be in if releasing to production (english speaking only)
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Flexible(
                                     //padding: const EdgeInsets.only(left: 20.0),
                                     child: GradientText(
-                                      "${convertUnitsIfNeedBe(widget.locationWeather.temperature)}°",
+                                      "${convertUnitsIfNeedBe(widget.locationWeather.currentTemperature)}°",
                                       style: kTempStyle,
                                       gradient: kTempGradient,
                                     ),

@@ -44,6 +44,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
         getLocationData();
       } else {
         //location permission is not granted, this is where approximate location goes
+        Map<Permission, PermissionStatus> status = await [
+          Permission.location,
+        ].request();
         if (kDebugMode) {
           print("Permission not granted");
         }
@@ -106,6 +109,20 @@ class _LoadingScreenState extends State<LoadingScreen> {
       }));
     }
 
+    if (true) {
+      // testing out other api
+      weatherData.cityName = currentCity!;
+      var response = await getWeatherFromOpenMeteo(currentLocation.latitude, currentLocation.longitude);
+      weatherData.setWeatherDataFromOpenMeteo(response);
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return HomeScreen(
+          locationWeather: weatherData,
+          cityName: weatherData.cityName,
+        );
+      }));
+      return;
+    }
+
     bool checkIfCitySaved = await isStoredLocation(currentCity!); // checking if location is currently stored
     if (checkIfCitySaved) {
       weatherData = await getStoredLocation();
@@ -131,7 +148,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         }));
       } else {
         //want to store this information into 1 weather object
-        weatherData.setWeatherData(response);
+        weatherData.setWeatherDataFromOpenWeather(response);
 
         // save initial lookup into local storage
         if (!geocodingCityFailed) {

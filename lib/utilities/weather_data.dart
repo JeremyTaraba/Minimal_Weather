@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:klimate/services/helper_functions.dart';
 
 class WeatherData {
   late DateTime writeTime; // is not used anywhere
-  num temperature = 0;
-  int condition = 0;
-  String cityName = "";
+  num currentTemperature = 0;
+  int currentCondition = 0;
+  String cityName = ""; // name should come from geocoding
   String description = "";
   late DateTime time;
   late DateTime sunrise;
@@ -19,23 +20,65 @@ class WeatherData {
   double windSpeed = 0;
   int uvIndex = 0;
   String currentIconNumber = "";
-  //List<String> dailyIconNumber = [];
-  //List<String> hourlyIconNumber = [];
+  String apiUsed = "";
   double long = 0.0;
   double lat = 0.0;
-  List hourly = [];
-  List daily = [];
-  List forecastList = [];
-  //double timeZoneOffset = 0;
+  List hourlyTemperatures = [];
+
+  List daily = []; // not used by open meteo
+  List forecastList = []; // not used by open meteo
+
+  List hourlyCodes = []; // not used by openweather
+  List hourlyPrecipitation = []; // not used by openweather
+  List hourlyUvIndex = []; // not used by openweather
+  List hourlyHumidity = []; // not used by openweather
+  List hourlyWindSpeed = []; // not used by openweather
+  List hourlyTime = []; // not used by openweather
 
   WeatherData() {
     //constructor
   }
 
-  void setWeatherData(var data) {
+  // is probably better to put all hourly data in a list
+
+  void setWeatherDataFromOpenMeteo(var data) {
+    apiUsed = "openmeteo";
     writeTime = DateTime.now();
-    temperature = data["onecall"]["current"]["temp"];
-    condition = data["onecall"]["current"]["weather"][0]["id"].toInt();
+
+    // bunch of lists to hold the data
+    hourlyTemperatures = data["hourly"]["temperature_2m"]; // 24 hour temperature info, hour by hour, 7 days
+    hourlyCodes = data["hourly"]["weather_code"];
+    hourlyPrecipitation = data["hourly"]["precipitation_probability"];
+    hourlyUvIndex = data["hourly"]["uv_index"];
+    hourlyHumidity = data["hourly"]["relative_humidity_30hPa"];
+    hourlyWindSpeed = data["hourly"]["windspeed_30hPa"];
+    hourlyTime = data["hourly"]["time"];
+    int hourIndex = getHourlyTimeGivenTime(hourlyTime, DateTime.now());
+
+    currentTemperature = hourlyTemperatures[hourIndex];
+    currentCondition = hourlyCodes[hourIndex];
+    description = getDescriptionFromCondition(currentCondition); // need to make new description based on condition
+    int conditionToOpenWeather = getOpenWeatherConditionNumberFromCondition(currentCondition);
+    int epochTime = data["utc_offset_seconds"]; // for the time offset
+    time = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
+    sunrise = DateTime.fromMillisecondsSinceEpoch(data['daily']['sunrise'][0] * 1000);
+    sunset = DateTime.fromMillisecondsSinceEpoch(data['daily']['sunset'][0] * 1000);
+    highTemp = data['daily']['temperature_2m_max'][0].toDouble(); // could get rid of these and figure out using hourly temps
+    lowTemp = data['daily']['temperature_2m_min'][0].toDouble(); // ^
+    background = _getBackground(conditionToOpenWeather, time.hour, sunrise.hour, sunset.hour);
+    humidity = hourlyHumidity[hourIndex].toInt();
+    windSpeed = double.parse(hourlyWindSpeed[hourIndex].toString());
+    uvIndex = hourlyUvIndex[hourIndex].toInt();
+    currentIconNumber = getOpenWeatherIconFromCondition(currentCondition, sunset, time, sunrise, false);
+    long = data["latitude"].toDouble();
+    lat = data["longitude"].toDouble();
+  }
+
+  void setWeatherDataFromOpenWeather(var data) {
+    apiUsed = "openweather";
+    writeTime = DateTime.now();
+    currentTemperature = data["onecall"]["current"]["temp"];
+    currentCondition = data["onecall"]["current"]["weather"][0]["id"].toInt();
     cityName = data["forecast"]["city"]["name"];
     description = data["onecall"]["current"]["weather"][0]["description"];
 
@@ -45,14 +88,14 @@ class WeatherData {
     sunset = DateTime.fromMillisecondsSinceEpoch(data["onecall"]['daily'][0]['sunset'] * 1000);
     highTemp = data["onecall"]['daily'][0]['temp']["max"].toDouble();
     lowTemp = data["onecall"]['daily'][0]['temp']["min"].toDouble();
-    background = _getBackground(condition, time.hour, sunrise.hour, sunset.hour);
+    background = _getBackground(currentCondition, time.hour, sunrise.hour, sunset.hour);
     humidity = data["onecall"]["current"]["humidity"].toInt();
     windSpeed = double.parse(data["onecall"]["current"]["wind_speed"].toString());
     uvIndex = data["onecall"]["current"]["uvi"].toInt();
     currentIconNumber = data["onecall"]["current"]["weather"][0]["icon"];
     long = data["onecall"]["lon"].toDouble();
     lat = data["onecall"]["lat"].toDouble();
-    hourly = data["onecall"]["hourly"]; // 48 hour info, hour by hour
+    hourlyTemperatures = data["onecall"]["hourly"]; // 48 hour info, hour by hour
     daily = data["onecall"]["daily"]; // 8 days weather overview, including today
     forecastList = data["forecast"]["list"]; // 5 day 3 hour forecast
     //timeZoneOffset = data["onecall"]["timezone_offset"];
@@ -145,8 +188,8 @@ class WeatherData {
   List<String> toStringList() {
     List<String> dataInStringFormat = [];
     dataInStringFormat.add(writeTime.toString());
-    dataInStringFormat.add(temperature.toString());
-    dataInStringFormat.add(condition.toString());
+    dataInStringFormat.add(currentTemperature.toString());
+    dataInStringFormat.add(currentCondition.toString());
     dataInStringFormat.add(cityName.toString());
     dataInStringFormat.add(description.toString());
     dataInStringFormat.add(time.toString());
@@ -160,7 +203,7 @@ class WeatherData {
     dataInStringFormat.add(currentIconNumber.toString());
     dataInStringFormat.add(long.toString());
     dataInStringFormat.add(lat.toString());
-    dataInStringFormat.add(jsonEncode(hourly));
+    dataInStringFormat.add(jsonEncode(hourlyTemperatures));
     dataInStringFormat.add(jsonEncode(daily));
     dataInStringFormat.add(jsonEncode(forecastList));
     //dataInStringFormat.add(timeZoneOffset.toString());
@@ -169,8 +212,8 @@ class WeatherData {
 
   void convertDataFromStringList(List<String> data) {
     writeTime = DateTime.parse(data[0]);
-    temperature = double.parse(data[1]) as num;
-    condition = int.parse(data[2]);
+    currentTemperature = double.parse(data[1]) as num;
+    currentCondition = int.parse(data[2]);
     cityName = data[3];
     description = data[4];
     time = DateTime.parse(data[5]);
@@ -184,8 +227,8 @@ class WeatherData {
     currentIconNumber = data[13];
     long = double.parse(data[14]);
     lat = double.parse(data[15]);
-    background = _getBackground(condition, time.hour, sunrise.hour, sunset.hour);
-    hourly = json.decode(data[16]);
+    background = _getBackground(currentCondition, time.hour, sunrise.hour, sunset.hour);
+    hourlyTemperatures = json.decode(data[16]);
     daily = json.decode(data[17]);
     forecastList = json.decode(data[18]);
     //timeZoneOffset = double.parse(data[19]);

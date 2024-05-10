@@ -93,7 +93,7 @@ class _LoadingNewCityState extends State<LoadingNewCity> {
               return const ErrorScreen(errorCode: 400); // couldn't find city
             }));
           } else {
-            currentWeatherData.setWeatherData(response);
+            currentWeatherData.setWeatherDataFromOpenWeather(response);
             global_FahrenheitUnits.value = await getTemperatureUnits();
             // send manual lookup to firebase for analytics
             _sendManualLocationToFirebase(currentWeatherData);
