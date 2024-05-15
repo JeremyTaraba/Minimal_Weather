@@ -18,7 +18,7 @@ class WeatherData {
   late AssetImage background;
   num humidity = 0;
   double windSpeed = 0;
-  int uvIndex = 0;
+  num uvIndex = 0;
   String currentIconNumber = "";
   String apiUsed = "";
   double long = 0.0;
@@ -50,8 +50,8 @@ class WeatherData {
     hourlyCodes = data["hourly"]["weather_code"];
     hourlyPrecipitation = data["hourly"]["precipitation_probability"];
     hourlyUvIndex = data["hourly"]["uv_index"];
-    hourlyHumidity = data["hourly"]["relative_humidity_30hPa"];
-    hourlyWindSpeed = data["hourly"]["windspeed_30hPa"];
+    hourlyHumidity = data["hourly"]["relative_humidity_1000hPa"];
+    hourlyWindSpeed = data["hourly"]["windspeed_1000hPa"];
     hourlyTime = data["hourly"]["time"];
     int hourIndex = getHourlyTimeGivenTime(hourlyTime, DateTime.now());
 
@@ -66,9 +66,9 @@ class WeatherData {
     highTemp = data['daily']['temperature_2m_max'][0].toDouble(); // could get rid of these and figure out using hourly temps
     lowTemp = data['daily']['temperature_2m_min'][0].toDouble(); // ^
     background = _getBackground(conditionToOpenWeather, time.hour, sunrise.hour, sunset.hour);
-    humidity = hourlyHumidity[hourIndex].toInt();
+    humidity = hourlyHumidity[hourIndex];
     windSpeed = double.parse(hourlyWindSpeed[hourIndex].toString());
-    uvIndex = hourlyUvIndex[hourIndex].toInt();
+    uvIndex = hourlyUvIndex[hourIndex];
     currentIconNumber = getOpenWeatherIconFromCondition(currentCondition, sunset, time, sunrise, false);
     long = data["latitude"].toDouble();
     lat = data["longitude"].toDouble();
@@ -185,7 +185,7 @@ class WeatherData {
     }
   }
 
-  List<String> toStringList() {
+  List<String> toStringListOpenWeather() {
     List<String> dataInStringFormat = [];
     dataInStringFormat.add(writeTime.toString());
     dataInStringFormat.add(currentTemperature.toString());
@@ -206,11 +206,11 @@ class WeatherData {
     dataInStringFormat.add(jsonEncode(hourlyTemperatures));
     dataInStringFormat.add(jsonEncode(daily));
     dataInStringFormat.add(jsonEncode(forecastList));
-    //dataInStringFormat.add(timeZoneOffset.toString());
+
     return dataInStringFormat;
   }
 
-  void convertDataFromStringList(List<String> data) {
+  void convertDataFromStringListOpenWeather(List<String> data) {
     writeTime = DateTime.parse(data[0]);
     currentTemperature = double.parse(data[1]) as num;
     currentCondition = int.parse(data[2]);
@@ -231,32 +231,7 @@ class WeatherData {
     hourlyTemperatures = json.decode(data[16]);
     daily = json.decode(data[17]);
     forecastList = json.decode(data[18]);
+    apiUsed = "openweather";
     //timeZoneOffset = double.parse(data[19]);
   }
 }
-
-//
-// // writes data to the file
-// Future<File> writeWeatherData(var weatherJson) async {
-//   final file = await localFile;
-//   DateTime writeTime = DateTime.now();
-//
-//   // Write the file
-//   return file.writeAsString('$writeTime \n $weatherJson');
-// }
-//
-// // reads data from the file
-// Future<String> readWeatherData() async {
-//   try {
-//     final file = await localFile;
-//
-//     // Read the file
-//     final contents = await file.readAsString();
-//
-//     return contents;
-//   } catch (e) {
-//     // If encountering an error
-//     print("Error reading local file: $e");
-//     return "Error";
-//   }
-// }

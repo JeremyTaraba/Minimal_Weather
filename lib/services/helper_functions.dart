@@ -204,7 +204,7 @@ Icon getWeatherIcon(String iconNumber, double size, String description) {
       return Icon(WeatherIcons.snow_heavy, size: size, color: Colors.grey);
     case "50n":
     case "50d":
-      return Icon(WeatherIcons.fog, size: size, color: Colors.grey);
+      return Icon(WeatherIcons.mist, size: size, color: Colors.grey);
     default:
       return Icon(WeatherIcons.sun, size: size, color: Colors.orange[600]);
   }
@@ -224,8 +224,13 @@ Future<void> sendLocationData(String cityName) async {
   final data = <String, String>{DateTime.now().toString(): cityName};
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   await firestore.collection("location").doc(global_userID).set(data, SetOptions(merge: true));
-  var cityHits = await firestore.collection("cities").doc(DateTime.now().toString().split(" ")[0]);
-  cityHits.update({cityName: FieldValue.increment(1)});
+  var cityHits = await firestore.collection("cities").doc(DateTime.now().toString().split(" ")[0]).get();
+  if (cityHits.exists) {
+    var cities = await firestore.collection("cities").doc(DateTime.now().toString().split(" ")[0]);
+    cities.update({cityName: FieldValue.increment(1)});
+  } else {
+    await firestore.collection("cities").doc(DateTime.now().toString().split(" ")[0]).set({cityName: 1}, SetOptions(merge: true));
+  }
 }
 
 Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
@@ -316,7 +321,11 @@ Future<void> setStoredLocation(String city, WeatherData originalLocation) async 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString("storedLocation", city);
   prefs.setString("storedLocationTime", DateTime.now().toString());
-  prefs.setStringList("storedLocationData", originalLocation.toStringList());
+  if (originalLocation.apiUsed == "openweather") {
+    prefs.setStringList("storedLocationData", originalLocation.toStringListOpenWeather());
+  } else {
+    prefs.setStringList("storedLocationData", originalLocation.toStringListOpenWeather());
+  }
 }
 
 Future<WeatherData> getStoredLocation() async {
@@ -324,7 +333,7 @@ Future<WeatherData> getStoredLocation() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   List<String>? dataInStringList = prefs.getStringList("storedLocationData");
   if (dataInStringList != null) {
-    storedLocation.convertDataFromStringList(dataInStringList);
+    storedLocation.convertDataFromStringListOpenWeather(dataInStringList);
   }
   return storedLocation;
 }
@@ -382,7 +391,9 @@ String twentyFourHourToString(int hours, int minutes) {
 }
 
 Future<dynamic> getWeatherFromOpenMeteo(double lat, double long) async {
-  var openMeteo = NetworkHelper(global_apiKey);
+  String openMeteoLink =
+      "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$long&hourly=temperature_2m,precipitation_probability,weather_code,uv_index,relative_humidity_1000hPa,windspeed_1000hPa&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&wind_speed_unit=ms&timeformat=unixtime&timezone=auto";
+  var openMeteo = NetworkHelper(openMeteoLink);
   var data = await openMeteo.getData();
   return data;
 }
@@ -399,12 +410,23 @@ int getHourlyTimeGivenTime(List<dynamic> timeList, DateTime time) {
   return -1;
 }
 
-int getMedianCondition(List<dynamic> hourlyCodes, int startIndex, int endIndex) {
-  //TODO: change it so it gets median description since night-clear == day-clear == clear
+int getMedianCondition(List<dynamic> hourlyConditions, int startIndex, int endIndex, List<dynamic> hourlyPrecipitation) {
+  // use precipitation to overwrite condition
+  num totalPrecipitation = 0;
   Map<int, int> dictConditions = {};
   for (int i = startIndex; i < endIndex; i++) {
-    dictConditions.update(hourlyCodes[i], (value) => value++, ifAbsent: () => 0);
+    dictConditions.update(hourlyConditions[i], (value) => value++, ifAbsent: () => 1);
+    totalPrecipitation += hourlyPrecipitation[i];
   }
+  if (totalPrecipitation >= 720) {
+    // average 20% per hour
+    return 21; // code for rain, 20 = code for drizzle
+  }
+  if (totalPrecipitation >= 240) {
+    // average 10% per hour
+    return 20; // code for rain, 20 = code for drizzle
+  }
+
   int maxValue = 0;
   int maxKey = 0;
   dictConditions.forEach((key, value) {
@@ -436,9 +458,15 @@ num getMaxTemps(List<dynamic> temps, int startIndex, int endIndex) {
   return maxTemp;
 }
 
-int getHourlyTemperatureCurrent(var temperatureList, var timeList) {
+num getHourlyTemperatureCurrent(var temperatureList, var timeList) {
   // need to get current time and check it with time list, the index they meet up is the index the temp we give them
   int index = getHourlyTimeGivenTime(timeList, DateTime.now());
+  return temperatureList[index];
+}
+
+num getHourlyTemperatureGivenTime(var temperatureList, var timeList, DateTime time) {
+  // need to get current time and check it with time list, the index they meet up is the index the temp we give them
+  int index = getHourlyTimeGivenTime(timeList, time);
   return temperatureList[index];
 }
 
@@ -578,7 +606,7 @@ String getDescriptionFromCondition(int condition) {
     return "Squalls";
   }
   if (condition == 20) {
-    return "Drizzle";
+    return "Light Rain";
   }
   if (condition == 21) {
     return "Rain";
@@ -611,7 +639,7 @@ String getDescriptionFromCondition(int condition) {
     return "Foggy";
   }
   if (condition <= 59) {
-    return "Drizzle";
+    return "Light Rain";
   }
   if (condition <= 69) {
     return "Rain";
@@ -737,32 +765,3 @@ String getOpenWeatherIconFromCondition(int condition, DateTime sunset, DateTime 
   }
   return "";
 }
-
-// Custom ValueListenable but with 2 objects
-// class ValueListenableBuilder2<A, B> extends StatelessWidget {
-//   const ValueListenableBuilder2({
-//     required this.firstListenable,
-//     required this.secondListenable,
-//     super.key,
-//     required this.builder,
-//     this.child,
-//   });
-//
-//   final ValueListenable<A> firstListenable;
-//   final ValueListenable<B> secondListenable;
-//   final Widget? child;
-//   final Widget Function(BuildContext context, A a, B b, Widget? child) builder;
-//
-//   @override
-//   Widget build(BuildContext context) => ValueListenableBuilder<A>(
-//         valueListenable: firstListenable,
-//         builder: (_, a, __) {
-//           return ValueListenableBuilder<B>(
-//             valueListenable: secondListenable,
-//             builder: (context, b, __) {
-//               return builder(context, a, b, child);
-//             },
-//           );
-//         },
-//       );
-// }

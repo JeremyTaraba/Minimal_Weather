@@ -27,7 +27,8 @@ class WeatherTile {
             style: const TextStyle(color: Colors.blue, fontSize: 16),
           ),
         ),
-        getWeatherIcon(icon, 40, description),
+        // if chance of rain is above 30% change icon to rain icon
+        getWeatherIcon(chanceOfRain * 100 > 30 ? "09n" : icon, 40, description),
         Flexible(
           child: ConvertTempUnits(
             temp: temp,
@@ -81,6 +82,7 @@ List createWeatherTilesOpenMeteo(WeatherData currentWeather) {
   int endIndex = 24 + timeDifference.inHours;
   // end block
 
+  print("Start index is: $startIndex");
   int condition = 0;
   for (int i = startIndex; i < endIndex; i++) {
     int epochTime = currentWeather.hourlyTime[i];
@@ -91,7 +93,7 @@ List createWeatherTilesOpenMeteo(WeatherData currentWeather) {
       getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, false),
       currentWeather.hourlyTemperatures[i],
       getDescriptionFromCondition(condition),
-      currentWeather.hourlyPrecipitation[i] > 0 ? "Rain" : "",
+      currentWeather.hourlyPrecipitation[i] / 100 > 10 ? "Rain" : "",
       currentWeather.hourlyPrecipitation[i] / 100,
     );
     weatherTiles.add(temp._generateTile(i));
@@ -99,9 +101,9 @@ List createWeatherTilesOpenMeteo(WeatherData currentWeather) {
   return weatherTiles;
 }
 
-List createWeatherTilesFiveDays(List forecastList, WeatherData currentWeather) {
+List createWeatherTilesFiveDays(List forecastList, WeatherData currentWeather, int dayIndex) {
   if (currentWeather.apiUsed == "openmeteo") {
-    return createWeatherTilesOpenMeteo(currentWeather);
+    return createWeatherTilesFiveDaysOpenMeteo(currentWeather, dayIndex);
   } else {
     return createWeatherTilesFiveDaysOpenWeather(forecastList);
   }
@@ -125,23 +127,24 @@ List createWeatherTilesFiveDaysOpenWeather(List forecastList) {
   return weatherTiles;
 }
 
-List createWeatherTilesFiveDaysOpenMeteo(WeatherData currentWeather) {
+List createWeatherTilesFiveDaysOpenMeteo(WeatherData currentWeather, int dayIndex) {
   List weatherTiles = [];
   Widget blank = const SizedBox(
     width: 10,
   );
   int condition = 0;
-
-  for (int i = 0; i < 23; i++) {
+  int startIndex = dayIndex * 24;
+  int endIndex = (dayIndex + 1) * 24;
+  for (int i = startIndex; i < endIndex; i++) {
     int epochTime = currentWeather.hourlyTime[i];
     var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
     condition = currentWeather.hourlyCodes[getHourlyTimeGivenTime(currentWeather.hourlyTime, date)];
     WeatherTile temp = WeatherTile(
       date.hour,
       getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, false),
-      getHourlyTemperatureCurrent(currentWeather.hourlyTemperatures, currentWeather.hourlyTime),
+      getHourlyTemperatureGivenTime(currentWeather.hourlyTemperatures, currentWeather.hourlyTime, date),
       getDescriptionFromCondition(condition),
-      currentWeather.hourlyPrecipitation[i] > 0 ? "Rain" : "",
+      currentWeather.hourlyPrecipitation[i] > 10 ? "Rain" : "",
       currentWeather.hourlyPrecipitation[i] / 100,
     );
     weatherTiles.add(temp._generateTile(i));
@@ -169,7 +172,7 @@ Widget scrollableWeatherFiveDays(int index, WeatherData currentWeather, BuildCon
     }
   }
 
-  List hourlyWeatherTile = createWeatherTilesFiveDays(forecastList, currentWeather);
+  List hourlyWeatherTile = createWeatherTilesFiveDays(forecastList, currentWeather, index);
   return SizedBox(
     height: MediaQuery.of(context).textScaler.scale(MediaQuery.of(context).size.width) / 3.5,
     child: ListView.builder(
@@ -315,7 +318,7 @@ List createWeatherBanners(WeatherData currentWeather, BuildContext context) {
       int epochTime = currentWeather.hourlyTime[i * 24];
       var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
 
-      condition = getMedianCondition(currentWeather.hourlyCodes, i * 24, (i + 1) * 24);
+      condition = getMedianCondition(currentWeather.hourlyCodes, i * 24, (i + 1) * 24, currentWeather.hourlyPrecipitation);
       WeatherBanner temp = WeatherBanner(
         i == 0 ? 0 : date.weekday,
         getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, true),

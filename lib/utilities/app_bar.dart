@@ -91,7 +91,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
                 onSelected: (City value) {
                   // push loading new city screen on top of home screen
                   myFocusNode.unfocus();
-
+                  print("Lat: ${value.lat} Long: ${value.long}");
                   if (widget.isLookUp) {
                     // if we already looked up a city, replace that city with a new one
                     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {

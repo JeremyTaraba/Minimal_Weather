@@ -9,10 +9,10 @@ import '../services/constants.dart';
 import 'package:klimate/utilities/weather_data.dart';
 
 // Next Update:
-// TODO: Reload does not reload current location, it reloads original, fix it to check if current is same as original
-// TODO: **Add new API using open meteo <- done. need to make it work using lookup and saving it
+// TODO: Reload does not reload current location, it reloads original, fix it to check if current city is same as original city
+// TODO: **Add new API using open meteo <- done. need to make it work when saving it
 // TODO: **Count how many calls are being made a day on firebase and stop all calls if goes above 9,999 (10k limit)
-// TODO: **Default to openmeteo unless reached max calls for the day then use open weather
+// saving the open weather api has different information from saving the open meteo api, will need to remake the whole thing for open meteo
 
 // TODO: If account is disabled, make it so can't use app, need a better way to identify user so can shadow ban them. also limit firebase read and writes per day incase of abuse
 // TODO: Make it so checking if stored city is saved will be more precise, ie: city name + state/country not just city name

@@ -77,6 +77,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     WeatherData weatherData = WeatherData();
     String? currentCity = "";
     bool geocodingCityFailed = false;
+    int dailyCalls = 0;
     // need to get the city based on lat and long
     try {
       List<geocoding.Placemark> geocodingLocation = await geocoding.placemarkFromCoordinates(currentLocation.latitude, currentLocation.longitude);
@@ -109,22 +110,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
       }));
     }
 
-    if (true) {
-      // testing out other api
-      weatherData.cityName = currentCity!;
-      var response = await getWeatherFromOpenMeteo(currentLocation.latitude, currentLocation.longitude);
-      weatherData.setWeatherDataFromOpenMeteo(response);
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return HomeScreen(
-          locationWeather: weatherData,
-          cityName: weatherData.cityName,
-        );
-      }));
-      return;
-    }
-
     bool checkIfCitySaved = await isStoredLocation(currentCity!); // checking if location is currently stored
     if (checkIfCitySaved) {
+      if (kDebugMode) {
+        print("city was saved");
+      }
       weatherData = await getStoredLocation();
       if (!geocodingCityFailed) {
         weatherData.cityName = currentCity;
@@ -138,24 +128,28 @@ class _LoadingScreenState extends State<LoadingScreen> {
       }));
     } else {
       // look up new location
-      var response = await cloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude);
-      if (!global_gotWeatherSuccessfully) {
-        if (kDebugMode) {
-          print("Did not get weather successfully");
+      dailyCalls += 1; // fetch daily calls from firebase
+      if (dailyCalls < 9990) {
+        // use openmeteo api
+        // increment daily calls
+        weatherData.cityName = currentCity!;
+        var response = await getWeatherFromOpenMeteo(currentLocation.latitude, currentLocation.longitude);
+        if (!global_gotWeatherSuccessfully) {
+          if (kDebugMode) {
+            print("Did not get weather successfully");
+          }
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+            return const ErrorScreen(errorCode: 503); // server is too full
+          }));
+          return;
         }
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-          return const ErrorScreen(errorCode: 503); // server is too full
-        }));
-      } else {
         //want to store this information into 1 weather object
-        weatherData.setWeatherDataFromOpenWeather(response);
-
+        weatherData.setWeatherDataFromOpenMeteo(response);
         // save initial lookup into local storage
         if (!geocodingCityFailed) {
           weatherData.cityName = currentCity;
-          setStoredLocation(currentCity, weatherData);
+          //setStoredLocation(currentCity, weatherData);
         }
-
         //send location to firebase for analytics
         _sendLocationToFirebase(weatherData);
 
@@ -165,6 +159,36 @@ class _LoadingScreenState extends State<LoadingScreen> {
             cityName: weatherData.cityName,
           );
         }));
+      } else {
+        // use openweather api
+        var response = await cloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude);
+        if (!global_gotWeatherSuccessfully) {
+          if (kDebugMode) {
+            print("Did not get weather successfully");
+          }
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+            return const ErrorScreen(errorCode: 503); // server is too full
+          }));
+        } else {
+          //want to store this information into 1 weather object
+          weatherData.setWeatherDataFromOpenWeather(response);
+
+          // save initial lookup into local storage
+          if (!geocodingCityFailed) {
+            weatherData.cityName = currentCity;
+            setStoredLocation(currentCity, weatherData);
+          }
+
+          //send location to firebase for analytics
+          _sendLocationToFirebase(weatherData);
+
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return HomeScreen(
+              locationWeather: weatherData,
+              cityName: weatherData.cityName,
+            );
+          }));
+        }
       }
     }
   }

@@ -50,6 +50,7 @@ class _LoadingNewCityState extends State<LoadingNewCity> {
   }
 
   loadNewCity(String? tappedCity, String? originalCity) async {
+    int dailyCalls = 0;
     WeatherData currentWeatherData = WeatherData();
     bool checkIfCitySaved = await isStoredLocation(widget.cityName);
     if (checkIfCitySaved) {
@@ -59,6 +60,57 @@ class _LoadingNewCityState extends State<LoadingNewCity> {
       // will do a manual look up
       bool underLookUpCounterLimit = await checkAndIncrementLookUpCounter();
       if (underLookUpCounterLimit) {
+        // look up new location
+        dailyCalls += 1; // fetch daily calls from firebase
+        if (dailyCalls < 9990) {
+          // use openmeteo api
+          // increment daily calls
+          String? currentCity = "";
+          try {
+            List<geocoding.Placemark> geocodingLocation = await geocoding.placemarkFromCoordinates(widget.lat.toDouble(), widget.long.toDouble());
+            if (geocodingLocation[0].locality != "") {
+              currentCity = geocodingLocation[0].locality;
+            } else {
+              if (kDebugMode) {
+                print("null locality, defaulting to country");
+              }
+              if (geocodingLocation[0].country != "") {
+                currentCity = geocodingLocation[0].country;
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print(e);
+            }
+            FirebaseCrashlytics.instance.recordError("Error Geocoding: \n $e", StackTrace.current);
+          }
+          currentWeatherData.cityName = currentCity!;
+          var response = await getWeatherFromOpenMeteo(widget.lat.toDouble(), widget.long.toDouble());
+          if (!global_gotWeatherSuccessfully) {
+            if (kDebugMode) {
+              print("Did not get weather successfully");
+            }
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+              return const ErrorScreen(errorCode: 503); // server is too full
+            }));
+            return;
+          }
+          //want to store this information into 1 weather object
+          currentWeatherData.setWeatherDataFromOpenMeteo(response);
+          global_FahrenheitUnits.value = await getTemperatureUnits();
+          //send location to firebase for analytics
+          _sendManualLocationToFirebase(currentWeatherData);
+          currentWeatherData.cityName = currentCity!;
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+            return HomeScreen(
+              locationWeather: currentWeatherData,
+              cityName: tappedCity,
+              isLookUp: true,
+            );
+          }));
+          return;
+        }
+
         var response = await cloudFunctionsGetWeather(widget.lat.toDouble(), widget.long.toDouble());
         if (!global_gotWeatherSuccessfully) {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -66,7 +118,7 @@ class _LoadingNewCityState extends State<LoadingNewCity> {
           }));
         } else {
           String? currentCity = "";
-          // need to get the city based on lat and long
+          // need to get the city based on lat and long to get the city name
           try {
             List<geocoding.Placemark> geocodingLocation = await geocoding.placemarkFromCoordinates(widget.lat.toDouble(), widget.long.toDouble());
             if (geocodingLocation[0].locality != "") {
@@ -111,7 +163,7 @@ class _LoadingNewCityState extends State<LoadingNewCity> {
       } else {
         // you have exceeded the lookup limit, returns you to last location
         // what if last location is original?
-        // can't be because original is saved, unless they waited 12 hours to reload their original
+        // can't be because original is saved, unless they waited 3 hours to reload their original
         ScaffoldMessenger.of(context).showSnackBar(snackBarLookUpLimit);
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
           return HomeScreen(
