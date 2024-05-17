@@ -127,11 +127,20 @@ class _LoadingScreenState extends State<LoadingScreen> {
         );
       }));
     } else {
+      //before using a lookup, send location to firebase for analytics. if account disabled throw error screen
+      await _sendLocationToFirebase(currentCity);
+      if (!global_accountEnabled) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+          return const ErrorScreen(errorCode: 401); // account disabled
+        }));
+        return;
+      }
       // look up new location
-      dailyCalls += 1; // fetch daily calls from firebase
+      dailyCalls = await getCallsFromFirebase(); // fetch daily calls from firebase
       if (dailyCalls < 9990) {
         // use openmeteo api
         // increment daily calls
+        incrementDailyCalls(currentCity);
         weatherData.cityName = currentCity!;
         var response = await getWeatherFromOpenMeteo(currentLocation.latitude, currentLocation.longitude);
         if (!global_gotWeatherSuccessfully) {
@@ -148,10 +157,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
         // save initial lookup into local storage
         if (!geocodingCityFailed) {
           weatherData.cityName = currentCity;
-          //setStoredLocation(currentCity, weatherData);
+          setStoredLocation(currentCity, weatherData);
         }
-        //send location to firebase for analytics
-        _sendLocationToFirebase(weatherData);
 
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return HomeScreen(
@@ -179,9 +186,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
             setStoredLocation(currentCity, weatherData);
           }
 
-          //send location to firebase for analytics
-          _sendLocationToFirebase(weatherData);
-
           Navigator.push(context, MaterialPageRoute(builder: (context) {
             return HomeScreen(
               locationWeather: weatherData,
@@ -193,14 +197,27 @@ class _LoadingScreenState extends State<LoadingScreen> {
     }
   }
 
-  Future<void> _sendLocationToFirebase(WeatherData weatherData) async {
+  Future<void> _sendLocationToFirebase(String cityName) async {
     try {
       final userCredential = await FirebaseAuth.instance.signInAnonymously();
       global_userID = userCredential.user?.uid;
+      try {
+        await userCredential.user?.reload();
+        if (kDebugMode) {
+          print("account is enabled");
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("account has been disabled");
+        }
+        global_accountEnabled = false;
+        global_errorMessage = "Account has been disabled.";
+      }
+
       if (kDebugMode) {
         print("Signed in with temporary account.");
       }
-      await sendLocationData(weatherData.cityName);
+      await sendLocationData(cityName);
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case "operation-not-allowed":

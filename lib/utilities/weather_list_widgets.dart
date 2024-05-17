@@ -82,7 +82,6 @@ List createWeatherTilesOpenMeteo(WeatherData currentWeather) {
   int endIndex = 24 + timeDifference.inHours;
   // end block
 
-  print("Start index is: $startIndex");
   int condition = 0;
   for (int i = startIndex; i < endIndex; i++) {
     int epochTime = currentWeather.hourlyTime[i];
@@ -169,6 +168,7 @@ Widget scrollableWeatherFiveDays(int index, WeatherData currentWeather, BuildCon
       if (localTime.toString().split(' ')[0] == now.toString().split(' ')[0]) {
         forecastList.add(forecastWeather[i]);
       }
+      print(forecastWeather[i]["main"]["temp"]);
     }
   }
 

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'global_variables.dart';
@@ -107,7 +109,14 @@ double getCelsius(num temp) {
 }
 
 int celsiusToFahrenheit(num temp) {
-  double num = double.parse(((temp * 9 / 5) + 32).toStringAsFixed(0));
+  double num;
+  if (temp > 100) {
+    // its in kelvin not celsius
+    num = double.parse((((temp - 273.15) * 9 / 5) + 32).toStringAsFixed(0));
+  } else {
+    num = double.parse(((temp * 9 / 5) + 32).toStringAsFixed(0));
+  }
+
   return num.toInt();
 }
 
@@ -221,16 +230,80 @@ bool isAfterSunsetBeforeSunrise(DateTime sunset, DateTime time, DateTime sunrise
 }
 
 Future<void> sendLocationData(String cityName) async {
-  final data = <String, String>{DateTime.now().toString(): cityName};
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
-  await firestore.collection("location").doc(global_userID).set(data, SetOptions(merge: true));
-  var cityHits = await firestore.collection("cities").doc(DateTime.now().toString().split(" ")[0]).get();
-  if (cityHits.exists) {
-    var cities = await firestore.collection("cities").doc(DateTime.now().toString().split(" ")[0]);
-    cities.update({cityName: FieldValue.increment(1)});
-  } else {
-    await firestore.collection("cities").doc(DateTime.now().toString().split(" ")[0]).set({cityName: 1}, SetOptions(merge: true));
+  try {
+    String date = DateTime.now().toUtc().toString();
+    final data = <String, String>{date: cityName};
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    await firestore.collection("location").doc(global_userID).set(data, SetOptions(merge: true));
+  } catch (e) {
+    if (kDebugMode) {
+      print("error sending city to firebase, account potentially disabled");
+      print(e);
+    }
+    global_accountEnabled = false;
+    global_errorMessage = "Account has been disabled.";
   }
+}
+
+Future<void> incrementDailyCalls(String cityName) async {
+  try {
+    String date = DateTime.now().toUtc().toString();
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    var cityHits = await firestore.collection("cities").doc(date.split(" ")[0]).get();
+    if (cityHits.exists) {
+      var cities = await firestore.collection("cities").doc(date.split(" ")[0]);
+      cities.update({cityName: FieldValue.increment(1)});
+      cities.update({"total": FieldValue.increment(1)});
+    } else {
+      await firestore.collection("cities").doc(date.split(" ")[0]).set({cityName: 1}, SetOptions(merge: true));
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print("error updating daily calls");
+      print(e);
+    }
+    global_accountEnabled = false;
+    global_errorMessage = "Account has been disabled.";
+  }
+}
+
+Future<int> getCallsFromFirebase() async {
+  int cityHits = 10000;
+  try {
+    String date = DateTime.now().toUtc().toString();
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    var snapshot = await firestore.collection("cities").doc(date.split(" ")[0]).get();
+    cityHits = snapshot.data()?["total"];
+    return cityHits;
+  } catch (e) {
+    if (kDebugMode) {
+      print(e);
+    }
+  }
+  return cityHits;
+}
+
+Future<String?> getCurrentCityName(double lat, double long) async {
+  String? currentCity = "";
+  try {
+    List<geocoding.Placemark> geocodingLocation = await geocoding.placemarkFromCoordinates(lat, long);
+    if (geocodingLocation[0].locality != "") {
+      currentCity = geocodingLocation[0].locality;
+    } else {
+      if (kDebugMode) {
+        print("null locality, defaulting to country");
+      }
+      if (geocodingLocation[0].country != "") {
+        currentCity = geocodingLocation[0].country;
+      }
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print(e);
+    }
+    FirebaseCrashlytics.instance.recordError("Error Geocoding: \n $e", StackTrace.current);
+  }
+  return currentCity;
 }
 
 Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
@@ -318,22 +391,24 @@ Future<bool> isStoredLocation(String? city) async {
 }
 
 Future<void> setStoredLocation(String city, WeatherData originalLocation) async {
+  if (kDebugMode) {
+    print("saving location");
+  }
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString("storedLocation", city);
   prefs.setString("storedLocationTime", DateTime.now().toString());
-  if (originalLocation.apiUsed == "openweather") {
-    prefs.setStringList("storedLocationData", originalLocation.toStringListOpenWeather());
-  } else {
-    prefs.setStringList("storedLocationData", originalLocation.toStringListOpenWeather());
-  }
+  prefs.setStringList("storedLocationData", originalLocation.toStringList());
 }
 
 Future<WeatherData> getStoredLocation() async {
+  if (kDebugMode) {
+    print("getting saved location");
+  }
   WeatherData storedLocation = WeatherData();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   List<String>? dataInStringList = prefs.getStringList("storedLocationData");
   if (dataInStringList != null) {
-    storedLocation.convertDataFromStringListOpenWeather(dataInStringList);
+    storedLocation.convertDataFromStringList(dataInStringList);
   }
   return storedLocation;
 }

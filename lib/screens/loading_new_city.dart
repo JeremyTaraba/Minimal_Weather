@@ -149,6 +149,7 @@ class _LoadingNewCityState extends State<LoadingNewCity> {
             global_FahrenheitUnits.value = await getTemperatureUnits();
             // send manual lookup to firebase for analytics
             _sendManualLocationToFirebase(currentWeatherData);
+            incrementDailyCalls(currentWeatherData.cityName);
             // normal lookup where we get the weather data from cloud functions
             currentWeatherData.cityName = currentCity!;
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {

@@ -98,6 +98,8 @@ class _ErrorScreenState extends State<ErrorScreen> {
         return _errorFiveZeroThree();
       case 400:
         return _errorFourZeroZero();
+      case 401:
+        return _errorFourZeroOne();
       default:
         return Container(
           color: Colors.white,
@@ -264,6 +266,108 @@ class _ErrorScreenState extends State<ErrorScreen> {
                               print(e);
                             } else {
                               FirebaseCrashlytics.instance.recordError("Manually pressed Send Error Button: \n $e", StackTrace.current);
+                            }
+                          }
+
+                          setState(() {
+                            reportButtonClicked = true;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                        }
+                      },
+                      child: const Text(
+                        "\n Send Error Report",
+                        style: kErrorScreenTextStyleBlue,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+                          return const LoadingScreen();
+                        }));
+                      },
+                      child: const Text(
+                        "\n Restart App",
+                        style: kErrorScreenTextStyleBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _errorFourZeroOne() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              Text(
+                "Authorization Error",
+                style: kErrorTextStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Divider(),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.person_off,
+                  color: Colors.red,
+                  size: 55,
+                ),
+              ),
+              const Text(
+                "Sorry, temporarily locked. "
+                "Send error report and try again later. \n \n",
+                style: kErrorTextStyle,
+                textAlign: TextAlign.center,
+              ),
+              const Text(
+                "Asked to be unlocked by sending an email to:",
+                style: kErrorTextStyle,
+                textAlign: TextAlign.center,
+              ),
+              TextButton(
+                onPressed: () {
+                  if (kDebugMode) {
+                    print("email");
+                  }
+                  _launchURL();
+                },
+                child: Text(
+                  "FroggyWeatherInfo@gmail.com",
+                  style: kErrorScreenTextStyleBlue.copyWith(fontSize: 24),
+                ),
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        if (!reportButtonClicked) {
+                          try {
+                            if (!kDebugMode) {
+                              throw Exception(global_errorMessage);
+                            }
+                          } catch (e) {
+                            if (kDebugMode) {
+                              print(e);
+                            } else {
+                              FirebaseCrashlytics.instance
+                                  .recordError("Manually pressed Send Error Button: User: $global_userID \n $e", StackTrace.current);
                             }
                           }
 

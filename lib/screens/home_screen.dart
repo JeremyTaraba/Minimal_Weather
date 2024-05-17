@@ -8,18 +8,12 @@ import '../utilities/gradient_text.dart';
 import '../services/constants.dart';
 import 'package:klimate/utilities/weather_data.dart';
 
-// Next Update:
-// TODO: Reload does not reload current location, it reloads original, fix it to check if current city is same as original city
-// TODO: **Add new API using open meteo <- done. need to make it work when saving it
-// TODO: **Count how many calls are being made a day on firebase and stop all calls if goes above 9,999 (10k limit)
-// saving the open weather api has different information from saving the open meteo api, will need to remake the whole thing for open meteo
-
-// TODO: If account is disabled, make it so can't use app, need a better way to identify user so can shadow ban them. also limit firebase read and writes per day incase of abuse
+// TODO: Not Working! If account is disabled, make it so can't use app, need a better way to identify user so can shadow ban them. also limit firebase read and writes per day incase of abuse
 // TODO: Make it so checking if stored city is saved will be more precise, ie: city name + state/country not just city name
 // TODO: make it so when doing a manual lookup, save that lookup somewhere just like saving the original location
 
 // TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen may need to add incentive like golden status or something, problem is how to check if user has subscribed or not when have no logins? use google play login?
-// TODO: Add notification for weather updates (government thingy) and for tomorrows weather
+// TODO: Add notification for tomorrows weather
 // TODO: Going back on loading screen should do something when it takes forever to load
 // TODO: Searching for new city only shows some of the cities by name not all of them, should be able to search by country too
 // TODO: Time is not local city time when doing manual look up, it is your own local time
@@ -49,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    print(widget.locationWeather.hourlyCodes);
   }
 
   @override
@@ -149,15 +144,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _pullRefresh() async {
     // if reloading current city then push replacement
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-      return LoadingNewCity(
-        lat: widget.locationWeather.lat,
-        long: widget.locationWeather.long,
-        cityName: widget.cityName,
-        originalWeather: widget.locationWeather,
-        originalCity: widget.cityName,
-      );
-    }));
+    String? currentCity = await getCurrentCityName(widget.locationWeather.lat, widget.locationWeather.long);
+    if (currentCity != "") {
+      if (currentCity?.toLowerCase() != widget.cityName?.toLowerCase()) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+          return LoadingNewCity(
+            lat: widget.locationWeather.lat,
+            long: widget.locationWeather.long,
+            cityName: currentCity,
+            originalWeather: widget.locationWeather,
+            originalCity: widget.cityName,
+          );
+        }));
+      } else {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+          return LoadingNewCity(
+            lat: widget.locationWeather.lat,
+            long: widget.locationWeather.long,
+            cityName: widget.cityName,
+            originalWeather: widget.locationWeather,
+            originalCity: widget.cityName,
+          );
+        }));
+      }
+    }
   }
 
   Widget extraSizeForOnRefresh() {

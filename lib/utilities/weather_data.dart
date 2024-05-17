@@ -34,7 +34,7 @@ class WeatherData {
   List hourlyHumidity = []; // not used by openweather
   List hourlyWindSpeed = []; // not used by openweather
   List hourlyTime = []; // not used by openweather
-
+  var encodedData = "";
   WeatherData() {
     //constructor
   }
@@ -44,6 +44,7 @@ class WeatherData {
   void setWeatherDataFromOpenMeteo(var data) {
     apiUsed = "openmeteo";
     writeTime = DateTime.now();
+    encodedData = json.encode(data);
 
     // bunch of lists to hold the data
     hourlyTemperatures = data["hourly"]["temperature_2m"]; // 24 hour temperature info, hour by hour, 7 days
@@ -70,13 +71,14 @@ class WeatherData {
     windSpeed = double.parse(hourlyWindSpeed[hourIndex].toString());
     uvIndex = hourlyUvIndex[hourIndex];
     currentIconNumber = getOpenWeatherIconFromCondition(currentCondition, sunset, time, sunrise, false);
-    long = data["latitude"].toDouble();
-    lat = data["longitude"].toDouble();
+    lat = data["latitude"].toDouble();
+    long = data["longitude"].toDouble();
   }
 
   void setWeatherDataFromOpenWeather(var data) {
     apiUsed = "openweather";
     writeTime = DateTime.now();
+    encodedData = json.encode(data);
     currentTemperature = data["onecall"]["current"]["temp"];
     currentCondition = data["onecall"]["current"]["weather"][0]["id"].toInt();
     cityName = data["forecast"]["city"]["name"];
@@ -185,53 +187,19 @@ class WeatherData {
     }
   }
 
-  List<String> toStringListOpenWeather() {
+  List<String> toStringList() {
     List<String> dataInStringFormat = [];
-    dataInStringFormat.add(writeTime.toString());
-    dataInStringFormat.add(currentTemperature.toString());
-    dataInStringFormat.add(currentCondition.toString());
-    dataInStringFormat.add(cityName.toString());
-    dataInStringFormat.add(description.toString());
-    dataInStringFormat.add(time.toString());
-    dataInStringFormat.add(sunrise.toString());
-    dataInStringFormat.add(sunset.toString());
-    dataInStringFormat.add(highTemp.toString());
-    dataInStringFormat.add(lowTemp.toString());
-    dataInStringFormat.add(humidity.toString());
-    dataInStringFormat.add(windSpeed.toString());
-    dataInStringFormat.add(uvIndex.toString());
-    dataInStringFormat.add(currentIconNumber.toString());
-    dataInStringFormat.add(long.toString());
-    dataInStringFormat.add(lat.toString());
-    dataInStringFormat.add(jsonEncode(hourlyTemperatures));
-    dataInStringFormat.add(jsonEncode(daily));
-    dataInStringFormat.add(jsonEncode(forecastList));
-
+    dataInStringFormat.add(encodedData);
+    dataInStringFormat.add(apiUsed);
     return dataInStringFormat;
   }
 
-  void convertDataFromStringListOpenWeather(List<String> data) {
-    writeTime = DateTime.parse(data[0]);
-    currentTemperature = double.parse(data[1]) as num;
-    currentCondition = int.parse(data[2]);
-    cityName = data[3];
-    description = data[4];
-    time = DateTime.parse(data[5]);
-    sunrise = DateTime.parse(data[6]);
-    sunset = DateTime.parse(data[7]);
-    highTemp = double.parse(data[8]);
-    lowTemp = double.parse(data[9]);
-    humidity = double.parse(data[10]) as num;
-    windSpeed = double.parse(data[11]);
-    uvIndex = int.parse(data[12]);
-    currentIconNumber = data[13];
-    long = double.parse(data[14]);
-    lat = double.parse(data[15]);
-    background = _getBackground(currentCondition, time.hour, sunrise.hour, sunset.hour);
-    hourlyTemperatures = json.decode(data[16]);
-    daily = json.decode(data[17]);
-    forecastList = json.decode(data[18]);
-    apiUsed = "openweather";
-    //timeZoneOffset = double.parse(data[19]);
+  void convertDataFromStringList(List<String> data) {
+    apiUsed = data[1];
+    if (apiUsed == "openweather") {
+      setWeatherDataFromOpenWeather(json.decode(data[0]));
+    } else {
+      setWeatherDataFromOpenMeteo(json.decode(data[0]));
+    }
   }
 }

@@ -6,3 +6,4 @@ var global_FahrenheitUnits = ValueNotifier(1);
 bool global_gotWeatherSuccessfully = true;
 String global_errorMessage = "";
 String? global_userID = "";
+bool global_accountEnabled = true;
