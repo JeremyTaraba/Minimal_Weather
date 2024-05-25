@@ -28,7 +28,7 @@ Future<List<City>> allCities(String pattern) async {
       City newCity = City(
         city: data["name"],
         country: data["country"],
-        state: data["state"],
+        state: data["state"] ?? "",
         lat: data["lat"],
         long: data["lon"],
       );

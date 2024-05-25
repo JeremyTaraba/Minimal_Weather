@@ -10,6 +10,7 @@ import 'package:klimate/utilities/weather_data.dart';
 
 // TODO: make it so when doing a manual lookup, save that lookup somewhere just like saving the original location
 // TODO: the AM/PM for 12:00 Noon is not correct
+// TODO: On next update change the version from 1.0.4 to 1.0.5 + 1 to update the crashalytics
 // TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen may need to add incentive like golden status or something, problem is how to check if user has subscribed or not when have no logins? use google play login?
 // TODO: Add notification for tomorrows weather
 // TODO: Going back on loading screen should do something when it takes forever to load
@@ -18,6 +19,9 @@ import 'package:klimate/utilities/weather_data.dart';
 // TODO: check firebase database to see if city already exists in last 12 hours, if not then lookup and add to database
 // TODO: sometimes it takes a really long time to load when installing for first time, make app reset after long time
 // TODO: Setting/saving locations so can look up fast
+
+// TODO: app_bar.dart 119 is causing errors when state is blank. Might need null check? or set to default value? might have fixed it?
+
 // TODO: limit countries froggy can be in if releasing to production (english speaking only)
 
 class HomeScreen extends StatefulWidget {
