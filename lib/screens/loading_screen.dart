@@ -76,11 +76,17 @@ class _LoadingScreenState extends State<LoadingScreen> {
     await currentLocation.getCurrentLocation();
     WeatherData weatherData = WeatherData();
     String? currentCity = "";
+    String? currentState = "";
     bool geocodingCityFailed = false;
     int dailyCalls = 0;
     // need to get the city based on lat and long
     try {
       List<geocoding.Placemark> geocodingLocation = await geocoding.placemarkFromCoordinates(currentLocation.latitude, currentLocation.longitude);
+
+      if (geocodingLocation[0].administrativeArea != "") {
+        // used for saving location more accurately, if no administrative Area then just leave it blank
+        currentState = geocodingLocation[0].administrativeArea;
+      }
       if (geocodingLocation[0].locality != "") {
         currentCity = geocodingLocation[0].locality;
       } else {
@@ -99,6 +105,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       FirebaseCrashlytics.instance.recordError("Error Geocoding: \n $e", StackTrace.current);
     }
 
+    weatherData.state = currentState!;
     if (currentCity == "") {
       // geocoding failed, throw error screen
       if (kDebugMode) {
@@ -110,7 +117,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       }));
     }
 
-    bool checkIfCitySaved = await isStoredLocation(currentCity!); // checking if location is currently stored
+    bool checkIfCitySaved = await isStoredLocation(currentCity!, currentState); // checking if location is currently stored
     if (checkIfCitySaved) {
       if (kDebugMode) {
         print("city was saved");
@@ -137,10 +144,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
       }
       // look up new location
       dailyCalls = await getCallsFromFirebase(); // fetch daily calls from firebase
+      // if (dailyCalls == null) {
+      //   // what happens if there is no "total" in the database? IDK but if it getsCalls() and it doesnt exist then it should make it exist
+      //   dailyCalls = 0;
+      // }
       if (dailyCalls < 9990) {
         // use openmeteo api
-        // increment daily calls
-        incrementDailyCalls(currentCity);
+        incrementDailyCalls(currentCity); // increment daily calls
         weatherData.cityName = currentCity!;
         var response = await getWeatherFromOpenMeteo(currentLocation.latitude, currentLocation.longitude);
         if (!global_gotWeatherSuccessfully) {
@@ -157,7 +167,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
         // save initial lookup into local storage
         if (!geocodingCityFailed) {
           weatherData.cityName = currentCity;
-          setStoredLocation(currentCity, weatherData);
+          setStoredLocation(currentCity, currentState, weatherData);
+        } else {
+          setStoredLocation(currentCity, currentState, weatherData);
         }
 
         Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -183,7 +195,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
           // save initial lookup into local storage
           if (!geocodingCityFailed) {
             weatherData.cityName = currentCity;
-            setStoredLocation(currentCity, weatherData);
+            setStoredLocation(currentCity, currentState, weatherData);
+          } else {
+            setStoredLocation(currentCity, currentState, weatherData);
           }
 
           Navigator.push(context, MaterialPageRoute(builder: (context) {

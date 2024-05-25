@@ -9,6 +9,7 @@ class WeatherData {
   num currentTemperature = 0;
   int currentCondition = 0;
   String cityName = ""; // name should come from geocoding
+  String state = "";
   String description = "";
   late DateTime time;
   late DateTime sunrise;
@@ -41,7 +42,7 @@ class WeatherData {
 
   // is probably better to put all hourly data in a list
 
-  void setWeatherDataFromOpenMeteo(var data) {
+  Future<void> setWeatherDataFromOpenMeteo(var data) async {
     apiUsed = "openmeteo";
     writeTime = DateTime.now();
     encodedData = json.encode(data);
@@ -70,12 +71,13 @@ class WeatherData {
     humidity = hourlyHumidity[hourIndex];
     windSpeed = double.parse(hourlyWindSpeed[hourIndex].toString());
     uvIndex = hourlyUvIndex[hourIndex];
-    currentIconNumber = getOpenWeatherIconFromCondition(currentCondition, sunset, time, sunrise, false);
+    currentIconNumber = getOpenWeatherIconFromCondition(currentCondition, sunset, time, sunrise, false, hourlyPrecipitation[hourIndex]);
     lat = data["latitude"].toDouble();
     long = data["longitude"].toDouble();
+    state = await getStateFromLatAndLong(lat, long);
   }
 
-  void setWeatherDataFromOpenWeather(var data) {
+  Future<void> setWeatherDataFromOpenWeather(var data) async {
     apiUsed = "openweather";
     writeTime = DateTime.now();
     encodedData = json.encode(data);
@@ -83,7 +85,6 @@ class WeatherData {
     currentCondition = data["onecall"]["current"]["weather"][0]["id"].toInt();
     cityName = data["forecast"]["city"]["name"];
     description = data["onecall"]["current"]["weather"][0]["description"];
-
     int epochTime = data["onecall"]["current"]["dt"];
     time = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
     sunrise = DateTime.fromMillisecondsSinceEpoch(data["onecall"]['daily'][0]['sunrise'] * 1000);
@@ -100,6 +101,7 @@ class WeatherData {
     hourlyTemperatures = data["onecall"]["hourly"]; // 48 hour info, hour by hour
     daily = data["onecall"]["daily"]; // 8 days weather overview, including today
     forecastList = data["forecast"]["list"]; // 5 day 3 hour forecast
+    state = await getStateFromLatAndLong(lat, long);
     //timeZoneOffset = data["onecall"]["timezone_offset"];
   }
 

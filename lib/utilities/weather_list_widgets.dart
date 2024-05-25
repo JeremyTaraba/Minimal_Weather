@@ -89,10 +89,10 @@ List createWeatherTilesOpenMeteo(WeatherData currentWeather) {
     condition = currentWeather.hourlyCodes[i];
     WeatherTile temp = WeatherTile(
       date.hour,
-      getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, false),
+      getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, false, currentWeather.hourlyPrecipitation[i]),
       currentWeather.hourlyTemperatures[i],
       getDescriptionFromCondition(condition),
-      currentWeather.hourlyPrecipitation[i] / 100 > 10 ? "Rain" : "",
+      currentWeather.hourlyPrecipitation[i] > 10 ? "Rain" : "",
       currentWeather.hourlyPrecipitation[i] / 100,
     );
     weatherTiles.add(temp._generateTile(i));
@@ -140,7 +140,7 @@ List createWeatherTilesFiveDaysOpenMeteo(WeatherData currentWeather, int dayInde
     condition = currentWeather.hourlyCodes[getHourlyTimeGivenTime(currentWeather.hourlyTime, date)];
     WeatherTile temp = WeatherTile(
       date.hour,
-      getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, false),
+      getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, false, currentWeather.hourlyPrecipitation[i]),
       getHourlyTemperatureGivenTime(currentWeather.hourlyTemperatures, currentWeather.hourlyTime, date),
       getDescriptionFromCondition(condition),
       currentWeather.hourlyPrecipitation[i] > 10 ? "Rain" : "",
@@ -168,7 +168,6 @@ Widget scrollableWeatherFiveDays(int index, WeatherData currentWeather, BuildCon
       if (localTime.toString().split(' ')[0] == now.toString().split(' ')[0]) {
         forecastList.add(forecastWeather[i]);
       }
-      print(forecastWeather[i]["main"]["temp"]);
     }
   }
 
@@ -317,13 +316,14 @@ List createWeatherBanners(WeatherData currentWeather, BuildContext context) {
     for (int i = 0; i < 7; i++) {
       int epochTime = currentWeather.hourlyTime[i * 24];
       var date = DateTime.fromMillisecondsSinceEpoch(epochTime * 1000);
-
-      condition = getMedianCondition(currentWeather.hourlyCodes, i * 24, (i + 1) * 24, currentWeather.hourlyPrecipitation);
+      int startIndex = i * 24;
+      int endIndex = (i + 1) * 24;
+      condition = getMedianCondition(currentWeather.hourlyCodes, startIndex, endIndex, currentWeather.hourlyPrecipitation);
       WeatherBanner temp = WeatherBanner(
         i == 0 ? 0 : date.weekday,
-        getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, true),
-        getMinTemps(currentWeather.hourlyTemperatures, i * 24, (i + 1) * 24),
-        getMaxTemps(currentWeather.hourlyTemperatures, i * 24, (i + 1) * 24),
+        getOpenWeatherIconFromCondition(condition, currentWeather.sunset, date, currentWeather.sunrise, true, 50),
+        getMinTemps(currentWeather.hourlyTemperatures, startIndex, endIndex),
+        getMaxTemps(currentWeather.hourlyTemperatures, startIndex, endIndex),
         getDescriptionFromCondition(condition),
         i,
       );

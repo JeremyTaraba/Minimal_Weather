@@ -8,10 +8,8 @@ import '../utilities/gradient_text.dart';
 import '../services/constants.dart';
 import 'package:klimate/utilities/weather_data.dart';
 
-// TODO: Not Working! If account is disabled, make it so can't use app, need a better way to identify user so can shadow ban them. also limit firebase read and writes per day incase of abuse
-// TODO: Make it so checking if stored city is saved will be more precise, ie: city name + state/country not just city name
 // TODO: make it so when doing a manual lookup, save that lookup somewhere just like saving the original location
-
+// TODO: the AM/PM for 12:00 Noon is not correct
 // TODO: Add way to contribute through subscription using Google Wallet? or Google Pay? within the app itself and with error screen may need to add incentive like golden status or something, problem is how to check if user has subscribed or not when have no logins? use google play login?
 // TODO: Add notification for tomorrows weather
 // TODO: Going back on loading screen should do something when it takes forever to load
@@ -43,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    print(widget.locationWeather.hourlyCodes);
   }
 
   @override
@@ -151,7 +148,8 @@ class _HomeScreenState extends State<HomeScreen> {
           return LoadingNewCity(
             lat: widget.locationWeather.lat,
             long: widget.locationWeather.long,
-            cityName: currentCity,
+            cityName: currentCity?.trim(),
+            state: widget.locationWeather.state,
             originalWeather: widget.locationWeather,
             originalCity: widget.cityName,
           );
@@ -161,7 +159,8 @@ class _HomeScreenState extends State<HomeScreen> {
           return LoadingNewCity(
             lat: widget.locationWeather.lat,
             long: widget.locationWeather.long,
-            cityName: widget.cityName,
+            cityName: widget.cityName?.trim(),
+            state: widget.locationWeather.state,
             originalWeather: widget.locationWeather,
             originalCity: widget.cityName,
           );

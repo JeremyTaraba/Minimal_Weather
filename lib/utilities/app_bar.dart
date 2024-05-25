@@ -99,6 +99,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
                         lat: value.lat,
                         long: value.long,
                         cityName: textController.text.trim(),
+                        state: value.state!,
                         originalWeather: widget.originalWeather,
                         originalCity: widget.cityName,
                       );
@@ -115,6 +116,7 @@ class _LocationAppBarState extends State<LocationAppBar> {
                         lat: value.lat,
                         long: value.long,
                         cityName: cityName.trim(),
+                        state: value.state!,
                         originalWeather: widget.originalWeather,
                         originalCity: widget.cityName,
                       );

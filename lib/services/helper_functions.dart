@@ -157,7 +157,7 @@ class _ConvertTempUnitsState extends State<ConvertTempUnits> {
 }
 
 class ConvertTimeUnits extends StatefulWidget {
-  ConvertTimeUnits({super.key, required this.hour, required this.minutes, this.textStyle = const TextStyle(color: Colors.black, fontSize: 16)});
+  const ConvertTimeUnits({super.key, required this.hour, required this.minutes, this.textStyle = const TextStyle(color: Colors.black, fontSize: 16)});
   final int hour;
   final int minutes;
   final TextStyle textStyle;
@@ -251,7 +251,7 @@ Future<void> incrementDailyCalls(String cityName) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     var cityHits = await firestore.collection("cities").doc(date.split(" ")[0]).get();
     if (cityHits.exists) {
-      var cities = await firestore.collection("cities").doc(date.split(" ")[0]);
+      var cities = firestore.collection("cities").doc(date.split(" ")[0]);
       cities.update({cityName: FieldValue.increment(1)});
       cities.update({"total": FieldValue.increment(1)});
     } else {
@@ -273,7 +273,13 @@ Future<int> getCallsFromFirebase() async {
     String date = DateTime.now().toUtc().toString();
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     var snapshot = await firestore.collection("cities").doc(date.split(" ")[0]).get();
-    cityHits = snapshot.data()?["total"];
+    if (snapshot.exists) {
+      cityHits = snapshot.data()?["total"];
+    } else {
+      await firestore.collection("cities").doc(date.split(" ")[0]).set({"total": 1}, SetOptions(merge: true));
+      cityHits = 1;
+    }
+
     return cityHits;
   } catch (e) {
     if (kDebugMode) {
@@ -365,15 +371,16 @@ Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
   return response.data;
 }
 
-Future<bool> isStoredLocation(String? city) async {
+Future<bool> isStoredLocation(String? city, String? state) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? storedLocation = prefs.getString("storedLocation"); // should be the original location
   if (storedLocation != null) {
+    String location = city! + state!;
+
     storedLocation = storedLocation.toLowerCase().trim();
-    city = city?.toLowerCase().trim();
-    // print("storedLocation - $storedLocation");
-    // print("city - $city");
-    if (city == storedLocation) {
+    location = location.toLowerCase().trim();
+
+    if (location == storedLocation) {
       final String? storedLocationTime = prefs.getString("storedLocationTime");
       if (storedLocationTime != null) {
         var parseDate = DateTime.parse(storedLocationTime);
@@ -390,12 +397,13 @@ Future<bool> isStoredLocation(String? city) async {
   return false;
 }
 
-Future<void> setStoredLocation(String city, WeatherData originalLocation) async {
+Future<void> setStoredLocation(String city, String state, WeatherData originalLocation) async {
   if (kDebugMode) {
     print("saving location");
   }
+  String location = city + state;
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString("storedLocation", city);
+  prefs.setString("storedLocation", location.toLowerCase().trim());
   prefs.setString("storedLocationTime", DateTime.now().toString());
   prefs.setStringList("storedLocationData", originalLocation.toStringList());
 }
@@ -549,7 +557,10 @@ int getOpenWeatherConditionNumberFromCondition(int condition) {
   if (condition == 0) {
     return 800;
   }
-  if (condition <= 2) {
+  if (condition == 1) {
+    return 801;
+  }
+  if (condition == 2) {
     return 802;
   }
   if (condition == 3) {
@@ -650,8 +661,11 @@ String getDescriptionFromCondition(int condition) {
   if (condition == 0) {
     return "Clear Sky";
   }
-  if (condition <= 2) {
+  if (condition == 1) {
     return "Few Clouds";
+  }
+  if (condition == 2) {
+    return "Scattered Clouds";
   }
   if (condition == 3) {
     return "Cloudy";
@@ -749,7 +763,7 @@ String getDescriptionFromCondition(int condition) {
   return "";
 }
 
-String getOpenWeatherIconFromCondition(int condition, DateTime sunset, DateTime time, DateTime sunrise, bool ignoreNight) {
+String getOpenWeatherIconFromCondition(int condition, DateTime sunset, DateTime time, DateTime sunrise, bool ignoreNight, num precipitation) {
   bool isNight = isAfterSunsetBeforeSunrise(sunset, time, sunrise);
   if (condition == 0) {
     if (isNight && !ignoreNight) {
@@ -757,11 +771,17 @@ String getOpenWeatherIconFromCondition(int condition, DateTime sunset, DateTime 
     }
     return "01d";
   }
-  if (condition <= 2) {
+  if (condition == 1) {
     if (isNight && !ignoreNight) {
       return "02n";
     }
     return "02d";
+  }
+  if (condition == 2) {
+    if (isNight && !ignoreNight) {
+      return "03n";
+    }
+    return "03d";
   }
   if (condition == 3) {
     if (isNight && !ignoreNight) {
@@ -776,7 +796,11 @@ String getOpenWeatherIconFromCondition(int condition, DateTime sunset, DateTime 
     return "11d";
   }
   if (condition <= 16) {
-    return "09d";
+    if (precipitation > 10) {
+      return "09d";
+    } else {
+      return "03d";
+    }
   }
   if (condition == 17) {
     return "11d";
@@ -785,16 +809,28 @@ String getOpenWeatherIconFromCondition(int condition, DateTime sunset, DateTime 
     return "50d";
   }
   if (condition == 20) {
-    return "09d";
+    if (precipitation > 10) {
+      return "09d";
+    } else {
+      return "03d";
+    }
   }
   if (condition == 21) {
-    return "10d";
+    if (precipitation > 10) {
+      return "10d";
+    } else {
+      return "04d";
+    }
   }
   if (condition <= 24) {
     return "13d";
   }
   if (condition == 25) {
-    return "10d";
+    if (precipitation > 10) {
+      return "10d";
+    } else {
+      return "04d";
+    }
   }
   if (condition <= 27) {
     return "13d";
@@ -815,22 +851,38 @@ String getOpenWeatherIconFromCondition(int condition, DateTime sunset, DateTime 
     return "50d";
   }
   if (condition <= 59) {
-    return "09d";
+    if (precipitation > 10) {
+      return "09d";
+    } else {
+      return "03d";
+    }
   }
   if (condition <= 69) {
-    return "10d";
+    if (precipitation > 10) {
+      return "10d";
+    } else {
+      return "04d";
+    }
   }
   if (condition <= 79) {
     return "13d";
   }
   if (condition <= 84) {
-    return "10d";
+    if (precipitation > 10) {
+      return "10d";
+    } else {
+      return "04d";
+    }
   }
   if (condition <= 90) {
     return "13d";
   }
   if (condition == 92) {
-    return "10d";
+    if (precipitation > 10) {
+      return "10d";
+    } else {
+      return "04d";
+    }
   }
   if (condition <= 94) {
     return "13d";
@@ -839,4 +891,23 @@ String getOpenWeatherIconFromCondition(int condition, DateTime sunset, DateTime 
     return "11d";
   }
   return "";
+}
+
+getStateFromLatAndLong(double lat, double long) async {
+  String? currentState = "";
+  try {
+    List<geocoding.Placemark> geocodingLocation = await geocoding.placemarkFromCoordinates(lat, long);
+
+    if (geocodingLocation[0].administrativeArea != "") {
+      // used for saving location more accurately, if no administrative Area then just leave it blank
+      currentState = geocodingLocation[0].administrativeArea;
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print(e);
+    }
+    FirebaseCrashlytics.instance.recordError("Error Geocoding: \n $e", StackTrace.current);
+  }
+
+  return currentState;
 }

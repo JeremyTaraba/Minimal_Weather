@@ -12,10 +12,17 @@ import 'error_screen.dart';
 
 class LoadingNewCity extends StatefulWidget {
   const LoadingNewCity(
-      {super.key, required this.lat, required this.long, required this.cityName, required this.originalWeather, required this.originalCity});
+      {super.key,
+      required this.lat,
+      required this.long,
+      required this.cityName,
+      required this.originalWeather,
+      required this.originalCity,
+      required this.state});
   final num lat;
   final num long;
   final String? cityName;
+  final String state;
   final WeatherData originalWeather;
   final String? originalCity; // might be different city name from originalWeather.cityName
   @override
@@ -52,22 +59,25 @@ class _LoadingNewCityState extends State<LoadingNewCity> {
   loadNewCity(String? tappedCity, String? originalCity) async {
     int dailyCalls = 0;
     WeatherData currentWeatherData = WeatherData();
-    bool checkIfCitySaved = await isStoredLocation(widget.cityName);
+    bool checkIfCitySaved = await isStoredLocation(widget.cityName, widget.state);
+
     if (checkIfCitySaved) {
       // if city saved we grab weather data from storage
       goToSavedCity(tappedCity);
+      return;
     } else {
       // will do a manual look up
-      bool underLookUpCounterLimit = await checkAndIncrementLookUpCounter();
+      bool underLookUpCounterLimit = await checkAndIncrementLookUpCounter(); // limit 5 manual lookups per hour
       if (underLookUpCounterLimit) {
         // look up new location
-        dailyCalls += 1; // fetch daily calls from firebase
+        dailyCalls = await getCallsFromFirebase(); // fetch daily calls from firebase
         if (dailyCalls < 9990) {
           // use openmeteo api
-          // increment daily calls
+          incrementDailyCalls(tappedCity!); // increment daily calls
           String? currentCity = "";
           try {
             List<geocoding.Placemark> geocodingLocation = await geocoding.placemarkFromCoordinates(widget.lat.toDouble(), widget.long.toDouble());
+
             if (geocodingLocation[0].locality != "") {
               currentCity = geocodingLocation[0].locality;
             } else {
