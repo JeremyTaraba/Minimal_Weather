@@ -7,6 +7,8 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:klimate/utilities/weather_data.dart';
 import '../services/constants.dart';
 
+import 'package:easy_debounce/easy_debounce.dart';
+
 class LocationAppBar extends StatefulWidget implements PreferredSizeWidget {
   const LocationAppBar({super.key, required this.cityName, required this.originalWeather, required this.isLookUp});
   final String? cityName;
@@ -36,7 +38,6 @@ class _LocationAppBarState extends State<LocationAppBar> {
   void dispose() {
     // Clean up the focus node when the Form is disposed.
     myFocusNode.dispose();
-
     super.dispose();
   }
 

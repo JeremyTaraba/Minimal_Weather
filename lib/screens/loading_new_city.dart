@@ -121,7 +121,7 @@ class _LoadingNewCityState extends State<LoadingNewCity> {
           return;
         }
 
-        var response = await cloudFunctionsGetWeather(widget.lat.toDouble(), widget.long.toDouble());
+        //var response = await cloudFunctionsGetWeather(widget.lat.toDouble(), widget.long.toDouble());
         if (!global_gotWeatherSuccessfully) {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
             return const ErrorScreen(errorCode: 503); // server is too full
@@ -155,7 +155,7 @@ class _LoadingNewCityState extends State<LoadingNewCity> {
               return const ErrorScreen(errorCode: 400); // couldn't find city
             }));
           } else {
-            currentWeatherData.setWeatherDataFromOpenWeather(response);
+            //currentWeatherData.setWeatherDataFromOpenWeather(response);
             global_FahrenheitUnits.value = await getTemperatureUnits();
             // send manual lookup to firebase for analytics
             _sendManualLocationToFirebase(currentWeatherData);

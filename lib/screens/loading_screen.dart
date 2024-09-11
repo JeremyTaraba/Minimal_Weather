@@ -136,78 +136,52 @@ class _LoadingScreenState extends State<LoadingScreen> {
     } else {
       //before using a lookup, send location to firebase for analytics. if account disabled throw error screen
       await _sendLocationToFirebase(currentCity);
-      if (!global_accountEnabled) {
+      // this sometimes sends false positives
+      // if (!global_accountEnabled) {
+      //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+      //     return const ErrorScreen(errorCode: 401); // account disabled
+      //   }));
+      //   return;
+    }
+    // look up new location
+    dailyCalls = await getCallsFromFirebase(); // fetch daily calls from firebase
+    if (dailyCalls < 9990) {
+      // use openmeteo api
+      incrementDailyCalls(currentCity); // increment daily calls
+      weatherData.cityName = currentCity!;
+      var response = await getWeatherFromOpenMeteo(currentLocation.latitude, currentLocation.longitude);
+      if (!global_gotWeatherSuccessfully) {
+        if (kDebugMode) {
+          print("Did not get weather successfully");
+        }
+        // something happened when getting weather
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-          return const ErrorScreen(errorCode: 401); // account disabled
+          return const ErrorScreen(errorCode: 503); // server is too full
         }));
         return;
       }
-      // look up new location
-      dailyCalls = await getCallsFromFirebase(); // fetch daily calls from firebase
-      // if (dailyCalls == null) {
-      //   // what happens if there is no "total" in the database? IDK but if it getsCalls() and it doesnt exist then it should make it exist
-      //   dailyCalls = 0;
-      // }
-      if (dailyCalls < 9990) {
-        // use openmeteo api
-        incrementDailyCalls(currentCity); // increment daily calls
-        weatherData.cityName = currentCity!;
-        var response = await getWeatherFromOpenMeteo(currentLocation.latitude, currentLocation.longitude);
-        if (!global_gotWeatherSuccessfully) {
-          if (kDebugMode) {
-            print("Did not get weather successfully");
-          }
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-            return const ErrorScreen(errorCode: 503); // server is too full
-          }));
-          return;
-        }
-        //want to store this information into 1 weather object
-        weatherData.setWeatherDataFromOpenMeteo(response);
-        // save initial lookup into local storage
-        if (!geocodingCityFailed) {
-          weatherData.cityName = currentCity;
-          setStoredLocation(currentCity, currentState, weatherData);
-        } else {
-          setStoredLocation(currentCity, currentState, weatherData);
-        }
-
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return HomeScreen(
-            locationWeather: weatherData,
-            cityName: weatherData.cityName,
-          );
-        }));
+      //want to store this information into 1 weather object
+      weatherData.setWeatherDataFromOpenMeteo(response);
+      // save initial lookup into local storage
+      if (!geocodingCityFailed) {
+        weatherData.cityName = currentCity;
+        setStoredLocation(currentCity, currentState, weatherData);
       } else {
-        // use openweather api
-        var response = await cloudFunctionsGetWeather(currentLocation.latitude, currentLocation.longitude);
-        if (!global_gotWeatherSuccessfully) {
-          if (kDebugMode) {
-            print("Did not get weather successfully");
-          }
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-            return const ErrorScreen(errorCode: 503); // server is too full
-          }));
-        } else {
-          //want to store this information into 1 weather object
-          weatherData.setWeatherDataFromOpenWeather(response);
-
-          // save initial lookup into local storage
-          if (!geocodingCityFailed) {
-            weatherData.cityName = currentCity;
-            setStoredLocation(currentCity, currentState, weatherData);
-          } else {
-            setStoredLocation(currentCity, currentState, weatherData);
-          }
-
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return HomeScreen(
-              locationWeather: weatherData,
-              cityName: weatherData.cityName,
-            );
-          }));
-        }
+        setStoredLocation(currentCity, currentState, weatherData);
       }
+
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return HomeScreen(
+          locationWeather: weatherData,
+          cityName: weatherData.cityName,
+        );
+      }));
+    } else {
+      // over daily limit of 10,000 calls
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+        return const ErrorScreen(errorCode: 503); // server is too full
+      }));
+      return;
     }
   }
 
@@ -224,7 +198,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         if (kDebugMode) {
           print("account has been disabled");
         }
-        global_accountEnabled = false;
+        global_accountEnabled = false; // this isn't used anywhere anymore
         global_errorMessage = "Account has been disabled.";
       }
 

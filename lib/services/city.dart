@@ -21,6 +21,7 @@ class City {
 }
 
 Future<List<City>> allCities(String pattern) async {
+  // the delay is to debounce (delay the execution of lookups) so you aren't looking up every frame
   return Future<List<City>>.delayed(const Duration(milliseconds: 300), () async {
     List<City> result = [];
     List Cities = await getAllCities(pattern);

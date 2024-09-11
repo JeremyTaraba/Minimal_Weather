@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
+// import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
@@ -30,7 +30,7 @@ String getLocalTime(int hour, int minutes) {
 
 String getAMPM(int hour) {
   String time = "";
-  if (hour > 12) {
+  if (hour >= 12) {
     time = "PM";
   } else {
     time = "AM";
@@ -282,6 +282,18 @@ Future<int> getCallsFromFirebase() async {
 
     return cityHits;
   } catch (e) {
+    print("error getting snapshot from getCallsFromFirebase, total must not exist. Attempting to create total");
+    try {
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      String date = DateTime.now().toUtc().toString();
+      await firestore.collection("cities").doc(date.split(" ")[0]).set({"total": 1}, SetOptions(merge: true));
+      cityHits = 1;
+    } catch (e) {
+      if (kDebugMode) {
+        print("total could not be created");
+        print(e);
+      }
+    }
     if (kDebugMode) {
       print(e);
     }
@@ -312,64 +324,65 @@ Future<String?> getCurrentCityName(double lat, double long) async {
   return currentCity;
 }
 
-Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
-  HttpsCallable weatherCloudFunction;
-  if (kDebugMode) {
-    weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeatherDebug');
-  } else {
-    weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
-  }
-
-  dynamic response;
-  bool gotResponse = true;
-  try {
-    response = await weatherCloudFunction.call(<String, dynamic>{
-      'lat': lat,
-      'long': long,
-    });
-  } on FirebaseFunctionsException catch (e) {
-    // Do clever things with e
-    if (kDebugMode) {
-      print(e);
-    }
-    gotResponse = false;
-    global_gotWeatherSuccessfully = false;
-    global_errorMessage = "Error getting response cloud functions. $e";
-  } catch (e) {
-    // Do other things that might be thrown that I have overlooked
-    if (kDebugMode) {
-      print(e);
-    }
-    gotResponse = false;
-    global_gotWeatherSuccessfully = false;
-    global_errorMessage = "Error getting response cloud functions. $e";
-  }
-
-  try {
-    if (gotResponse) {
-      if (response.data["error"] != "Error") {
-        global_errorMessage = "No Error";
-      } else {
-        if (kDebugMode) {
-          print('Error getting response from url. ${response.data["error_info"]}');
-        }
-        global_gotWeatherSuccessfully = false;
-        global_errorMessage = "Error getting response from url.  ${response.data["error_info"]}";
-        return "Error";
-      }
-    } else {
-      return "Error";
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print(e);
-    }
-    global_gotWeatherSuccessfully = false;
-    return "Error";
-  }
-
-  return response.data;
-}
+// get request from cloud functions (no longer available because google account ran out of trial time)
+// Future<dynamic> cloudFunctionsGetWeather(double lat, double long) async {
+//   HttpsCallable weatherCloudFunction;
+//   if (kDebugMode) {
+//     weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeatherDebug');
+//   } else {
+//     weatherCloudFunction = FirebaseFunctions.instance.httpsCallable('getWeather');
+//   }
+//
+//   dynamic response;
+//   bool gotResponse = true;
+//   try {
+//     response = await weatherCloudFunction.call(<String, dynamic>{
+//       'lat': lat,
+//       'long': long,
+//     });
+//   } on FirebaseFunctionsException catch (e) {
+//     // Do clever things with e
+//     if (kDebugMode) {
+//       print(e);
+//     }
+//     gotResponse = false;
+//     global_gotWeatherSuccessfully = false;
+//     global_errorMessage = "Error getting response cloud functions. $e";
+//   } catch (e) {
+//     // Do other things that might be thrown that I have overlooked
+//     if (kDebugMode) {
+//       print(e);
+//     }
+//     gotResponse = false;
+//     global_gotWeatherSuccessfully = false;
+//     global_errorMessage = "Error getting response cloud functions. $e";
+//   }
+//
+//   try {
+//     if (gotResponse) {
+//       if (response.data["error"] != "Error") {
+//         global_errorMessage = "No Error";
+//       } else {
+//         if (kDebugMode) {
+//           print('Error getting response from url. ${response.data["error_info"]}');
+//         }
+//         global_gotWeatherSuccessfully = false;
+//         global_errorMessage = "Error getting response from url.  ${response.data["error_info"]}";
+//         return "Error";
+//       }
+//     } else {
+//       return "Error";
+//     }
+//   } catch (e) {
+//     if (kDebugMode) {
+//       print(e);
+//     }
+//     global_gotWeatherSuccessfully = false;
+//     return "Error";
+//   }
+//
+//   return response.data;
+// }
 
 Future<bool> isStoredLocation(String? city, String? state) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
